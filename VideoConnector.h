@@ -19,11 +19,12 @@ using namespace std;
 
 class VideoConnector {
 public:
-	CvCapture* capture;
-	Mat frame, frameCopy, image;
+	CvCapture *capture1, *capture2;
+	Mat frame1, frameCopy1, image1, frame2, frameCopy2, image2;
 	VideoConnector();
 	virtual ~VideoConnector();
-	int captureVideo();
+	int captureVideo(int i);
+	int captureMultipleVideo();
 };
 
 #endif /* VIDEOCONNECTOR_H_ */

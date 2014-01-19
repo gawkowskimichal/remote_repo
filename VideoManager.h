@@ -8,14 +8,19 @@
 #define VIDEOMANAGER_H_
 
 #include "VideoConnector.h"
+#include <thread>
 
+using namespace std;
 
 class VideoManager {
 public:
-	VideoConnector * cam1;
+	VideoConnector * connector1;
+	VideoConnector * connector2;
 	VideoManager();
 	virtual ~VideoManager();
-	void CaptureFrom(int i);
+	void CaptureFrom( int i );
+	void CaptureFromBoth();
+	void CaptureMultiple();
 };
 
 #endif /* VIDEOMANAGER_H_ */
