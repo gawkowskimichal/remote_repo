@@ -8,13 +8,14 @@
 #include "Program.h"
 
 Program::Program() {
-
+	man = new VideoManager();
 }
 
 Program::~Program() {
 }
 
 int main(){
-
+	Program *p = new Program();
+	p->man->CaptureFrom(1);
 return 1;
 }

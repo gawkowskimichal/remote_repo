@@ -7,6 +7,9 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <iostream>
+#include <stdio.h>
+
 
 #ifndef VIDEOCONNECTOR_H_
 #define VIDEOCONNECTOR_H_
@@ -20,7 +23,7 @@ public:
 	Mat frame, frameCopy, image;
 	VideoConnector();
 	virtual ~VideoConnector();
-	void capture();
-}
+	int captureVideo();
+};
 
 #endif /* VIDEOCONNECTOR_H_ */
