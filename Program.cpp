@@ -16,9 +16,9 @@ Program::~Program() {
 
 int main(){
 	Program *p = new Program();
-	p->man->CaptureFrom(0);
-	p->man->CaptureFrom(1);
-	//p->man->CaptureMultiple();
+	//p->man->CaptureFrom(0);
+	//p->man->CaptureFrom(1);
+	p->man->CaptureMultiple();
 	//p->man->CaptureFromBoth();
 return 1;
 }

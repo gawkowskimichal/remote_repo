@@ -20,11 +20,11 @@ VideoConnector::~VideoConnector() {
 
 int VideoConnector::captureMultipleVideo(){
 	   capture1=cvCaptureFromCAM(0);
-	   cvSetCaptureProperty( capture1, CV_CAP_PROP_FRAME_WIDTH, 176 );
-	   cvSetCaptureProperty( capture1, CV_CAP_PROP_FRAME_HEIGHT, 144 );
+	   cvSetCaptureProperty( capture1, CV_CAP_PROP_FRAME_WIDTH, 640 );
+	   cvSetCaptureProperty( capture1, CV_CAP_PROP_FRAME_HEIGHT, 480 );
 	   capture2=cvCaptureFromCAM(1);
-	   cvSetCaptureProperty( capture2, CV_CAP_PROP_FRAME_WIDTH, 176 );
-	   cvSetCaptureProperty( capture2, CV_CAP_PROP_FRAME_HEIGHT, 144);
+	   cvSetCaptureProperty( capture2, CV_CAP_PROP_FRAME_WIDTH, 640 );
+	   cvSetCaptureProperty( capture2, CV_CAP_PROP_FRAME_HEIGHT, 480);
 	   if(!capture1)
 	   {
 	      printf("Cannot find device1!\n");
