@@ -8,24 +8,25 @@
 #include "View.h"
 #include <iostream>
 
-View::View(int argc, char *argv[]) {
-	startView(argc,argv);
+View::View(int argc, char *argv[], Configuration conf) {
+	startView(argc,argv,conf);
 }
 
-int View::startView(int argc, char *argv[]){
+int View::startView(int argc, char *argv[], Configuration conf){
+	std::string GladeFile = conf.getValueByKey("gladeFile");
     Gtk::Main kit(argc, argv);
     Glib::RefPtr<Gtk::Builder> refBuilder = Gtk::Builder::create();
       try
       {
-        refBuilder->add_from_file("GladeView.glade");
+        refBuilder->add_from_file(GladeFile);
       }
       catch(const Glib::FileError& ex)
       {
-       // std::out << "FileError: " << ex.what() << std::endl;
+    	  std::cout << "FileError: " << ex.what() << std::endl;
       }
       catch(const Gtk::BuilderError& ex)
       {
-        // std::out << "BuilderError: " << ex.what() << std::endl;
+    	  std::cout << "BuilderError: " << ex.what() << std::endl;
       }
       Gtk::Window window;
       Gtk::Main::run(window);

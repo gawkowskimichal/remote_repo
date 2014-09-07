@@ -7,8 +7,10 @@
 
 #ifndef PROGRAM_H_
 #define PROGRAM_H_
+#include "Configuration.h"
 #include "VideoManager.h"
 #include "View.h"
+#include "ConfReader.h"
 #include <gtkmm.h>
 #include <iostream>
 
@@ -16,6 +18,7 @@ class Program {
 public:
 	VideoManager * man;
 	View * view;
+	ConfReader * reader;
 	Program(int argc, char *argv[]);
 	virtual ~Program();
 
