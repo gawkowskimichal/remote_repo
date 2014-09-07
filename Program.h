@@ -8,11 +8,15 @@
 #ifndef PROGRAM_H_
 #define PROGRAM_H_
 #include "VideoManager.h"
+#include "View.h"
+#include <gtkmm.h>
+#include <iostream>
 
 class Program {
 public:
 	VideoManager * man;
-	Program();
+	View * view;
+	Program(int argc, char *argv[]);
 	virtual ~Program();
 
 };

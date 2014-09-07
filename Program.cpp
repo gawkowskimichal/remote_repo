@@ -7,18 +7,29 @@
 
 #include "Program.h"
 
-Program::Program() {
+
+
+Program::Program(int argc, char *argv[]) {
 	man = new VideoManager();
+	view = new View(argc, argv);
 }
 
 Program::~Program() {
 }
 
-int main(){
-	Program *p = new Program();
+int main(int argc, char *argv[]){
+	Program *p = new Program(argc,argv);
 	//p->man->CaptureFrom(0);
 	//p->man->CaptureFrom(1);
-	p->man->CaptureMultiple();
+	/*
+    Gtk::Main kit(argc, argv);
+
+    Gtk::Window window;
+
+    Gtk::Main::run(window);
+*/
+
+	//p->man->CaptureMultiple();
 	//p->man->CaptureFromBoth();
 return 1;
 }
