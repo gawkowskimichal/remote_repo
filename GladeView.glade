@@ -31,7 +31,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
-                  <object class="GtkButton" id="kalibracja">
+                  <object class="GtkButton" id="btnKalibracja">
                     <property name="label" translatable="yes">Kalibracja</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
@@ -44,7 +44,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="nagrywanie">
+                  <object class="GtkButton" id="btnNagrywanie">
                     <property name="label" translatable="yes">Nagrywanie</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
@@ -57,7 +57,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="konfiguracja">
+                  <object class="GtkButton" id="btnKonfiguracja">
                     <property name="label" translatable="yes">Konfiguracja</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
@@ -70,12 +70,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="exit">
+                  <object class="GtkButton" id="btnExit">
                     <property name="label" translatable="yes">Wyjdź</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="tooltip_text" translatable="yes">Kończy program</property>
+                    <signal name="clicked" handler="gtk_main_quit" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">True</property>
