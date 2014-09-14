@@ -1,11 +1,3 @@
-//============================================================================
-// Name        : Calibration.cpp
-// Author      : MGW
-// Version     :
-// Copyright   : 
-// Description : Hello World in C++, Ansi-style
-//============================================================================
-
 #include <iostream>
 #include <sstream>
 #include <time.h>
