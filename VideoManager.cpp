@@ -21,8 +21,15 @@ void VideoManager::CaptureFrom( int i ){
 	result = connector->captureVideo(i);
 }
 
+void VideoManager::getCalibrationMaterial(Configuration conf, int i){
+	connector->getCalibrationMaterial(conf,i);
+}
 
 void VideoManager::CaptureMultiple(){
 	int result = 0;
 	result = connector->captureMultipleVideo();
+}
+
+void VideoManager::shutdown(){
+	connector->shutdownCameras();
 }

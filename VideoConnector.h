@@ -9,8 +9,10 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 #include <stdio.h>
+#include <stdlib.h>
 #include "Configuration.h"
 #include "Camera.h"
+#include <boost/lexical_cast.hpp>
 
 
 #ifndef VIDEOCONNECTOR_H_
@@ -29,14 +31,16 @@ public:
 	virtual ~VideoConnector();
 	int captureVideo(int i);
 	int captureMultipleVideo();
-	int captureSnapshot(int i);
-	int captureMultipleSnapshot();
-	int saveImageToFile(Mat image, String path);
+	Mat captureSnapshot(int i);
+	vector<Mat> captureMultipleSnapshot();
+	void saveImageToFile(Mat image, String path);
 	Mat readImageFromFile(String path);
 	void initCameras(Configuration conf);
 	void setCaptureOptions(Configuration conf);
 	int resetCameras();
+	void shutdownCameras();
 	int getCameraCount(Configuration conf);
+	void getCalibrationMaterial(Configuration conf, int i);
 };
 
 #endif /* VIDEOCONNECTOR_H_ */

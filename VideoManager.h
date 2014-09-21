@@ -22,6 +22,9 @@ public:
 	void CaptureMultiple();
 	void CaptureSnapshotFrom(int i);
 	void CaptureSnapshotFromBoth();
+	void getCalibrationMaterial(Configuration conf, int i);
+	void getCalibrationMultipleMaterial(Configuration conf);
+	void shutdown();
 };
 
 #endif /* VIDEOMANAGER_H_ */

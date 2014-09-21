@@ -87,6 +87,57 @@ int VideoConnector::captureVideo(int i){
 	    return 0;
 };
 
+Mat VideoConnector::captureSnapshot(int i){
+	CvCapture *cap;
+	Mat frame, frameCopy;
+	cap = cameras[i]->cam;
+	if(!cap) cout << "No camera detected" << endl;
+	    if( cap ){
+	        cout << "In capture ..." << endl;
+	        for(;;){
+	            frame = cvQueryFrame( cap );
+	            frameCopy = frame.clone();
+	            if (!frameCopy.empty()){
+	            	cv::imshow("Snapshot", frameCopy );
+	            }
+	            if( waitKey( 10 ) >= 0 ){
+	            	destroyWindow("Snapshot");
+	            	break;
+	            }
+	        }
+	    }
+	    return frameCopy.clone();
+}
+
+vector<Mat> VideoConnector::captureMultipleSnapshot(){
+	vector<Mat> result;
+	return result;
+};
+
+void VideoConnector::saveImageToFile(Mat m, String path){
+	try{
+		imwrite(path,m);
+	} catch(string obj) {
+		cout << "Error: unable to save Mat to file:" << path << endl;
+		cout << obj << endl;
+	}
+};
+
+void VideoConnector::getCalibrationMaterial(Configuration conf, int i){
+	String pathToCalibrationDir= conf.getValueByKey("pathToCalibrationDir");
+	int numberOfSamples = atoi(conf.getValueByKey("numberOfSamples").c_str());
+	String fileName_origin = "cam_" + boost::lexical_cast<std::string>(i) + "_";
+	for (int j = 0; j < numberOfSamples; j++){
+		cout << j << endl;
+		Mat frame = captureSnapshot(i);
+		String snapshot_index;
+		sprintf((char*)snapshot_index.c_str(), "%d", j);
+		String fileName_version = pathToCalibrationDir +"/" +fileName_origin + boost::lexical_cast<std::string>(j) + ".png";
+		saveImageToFile(frame,fileName_version);
+		cout << "Image saved: " << fileName_version << endl;
+	}
+}
+
 void VideoConnector::initCameras(Configuration conf){
 	CameraCounter = getCameraCount(conf);
 	for (int i = 0; i < CameraCounter; i++){
@@ -95,6 +146,12 @@ void VideoConnector::initCameras(Configuration conf){
 	}
 	setCaptureOptions(conf);
 }
+
+void VideoConnector::shutdownCameras(){
+	for (int i = 0; i < CameraCounter; i++){
+			cvReleaseCapture(&(cameras[i]->cam));
+	}
+};
 
 void VideoConnector::setCaptureOptions(Configuration conf){
 	std::string::size_type sz;
