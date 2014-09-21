@@ -12,8 +12,8 @@
 Program::Program(int argc, char *argv[]) {
 	reader = new ConfReader();
 	reader->readConf();
-	man = new VideoManager();
-	view = new View(argc, argv,reader->conf);
+	man = new VideoManager(reader->conf);
+	//view = new View(argc, argv,reader->conf);
 }
 
 Program::~Program() {
@@ -21,7 +21,7 @@ Program::~Program() {
 
 int main(int argc, char *argv[]){
 	Program *p = new Program(argc,argv);
-	//p->man->CaptureFrom(0);
+	p->man->CaptureFrom(0);
 	//p->man->CaptureFrom(1);
 	//p->man->CaptureMultiple();
 	//p->man->CaptureFromBoth();

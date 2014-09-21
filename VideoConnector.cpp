@@ -10,8 +10,7 @@ using namespace std;
 using namespace cv;
 
 VideoConnector::VideoConnector() {
-	// TODO Auto-generated constructor stub
-
+	CameraCounter = 0;
 };
 
 VideoConnector::~VideoConnector() {
@@ -60,32 +59,68 @@ int VideoConnector::captureMultipleVideo(){
 }
 
 int VideoConnector::captureVideo(int i){
-	 this->capture1 = cvCaptureFromCAM( i );
-	   cvSetCaptureProperty( capture1, CV_CAP_PROP_FRAME_WIDTH, 640 );
-	   cvSetCaptureProperty( capture1, CV_CAP_PROP_FRAME_HEIGHT, 480 );
-	    if(!this->capture1) cout << "No camera detected" << endl;
-
+	CvCapture *cap;
+	Mat frame, frameCopy;
+	cap = cameras[i]->cam;
+	if(!cap) cout << "No camera detected" << endl;
 	    cvNamedWindow( "result", 1 );
-
-	    if( capture1 ){
+	    if( cap ){
 	        cout << "In capture ..." << endl;
 	        for(;;){
-	            IplImage* iplImg = cvQueryFrame( capture1 );
-	            frame1 = iplImg;
-	            if( frame1.empty() ){
+	            IplImage* iplImg = cvQueryFrame( cap );
+	            frame = iplImg;
+	            if( frame.empty() ){
 	            	 cout << "No image captured" << endl;
 	            	 break;
 	            }
 	            if( iplImg->origin == IPL_ORIGIN_TL )
-	                frame1.copyTo( frameCopy1 );
+	            	frame.copyTo( frameCopy );
 	            else
-	                flip( frame1, frameCopy1, 0 );
+	                flip( frame, frameCopy, 0 );
 	            cvShowImage( "result", iplImg );
 	            if( waitKey( 10 ) >= 0 )
-	                cvReleaseCapture( &capture1 );
+	                cvReleaseCapture( &cap );
 	        }
 	    }
 	    waitKey(0);
 	    cvDestroyWindow("result");
 	    return 0;
 };
+
+void VideoConnector::initCameras(Configuration conf){
+	CameraCounter = getCameraCount(conf);
+	for (int i = 0; i < CameraCounter; i++){
+		Camera *cam = new Camera(i);
+		cameras.push_back(cam);
+	}
+	setCaptureOptions(conf);
+}
+
+void VideoConnector::setCaptureOptions(Configuration conf){
+	std::string::size_type sz;
+	double width = atof(conf.getValueByKey("resolution_y").c_str());
+	double height = atof(conf.getValueByKey("resolution_x").c_str());
+	for(std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){
+		(*it)->setCaptureOption(CV_CAP_PROP_FRAME_WIDTH, width);
+		(*it)->setCaptureOption(CV_CAP_PROP_FRAME_HEIGHT, height);
+	}
+}
+
+int VideoConnector::getCameraCount(Configuration conf){
+	int result = 0;
+	int maxCameras = atoi(conf.getValueByKey("maxCameras").c_str());
+	if (maxCameras == 0){
+		maxCameras = 2;
+	}
+	cv::VideoCapture temp;
+	for(int i = 0; i< maxCameras; i++){
+		temp.open(i);
+		if (temp.isOpened()){
+			temp.release();
+			result++;
+		} else {
+			return result;
+		}
+	}
+	return result;
+}
