@@ -41,6 +41,7 @@ public:
 	void shutdownCameras();
 	int getCameraCount(Configuration conf);
 	void getCalibrationMaterial(Configuration conf, int i);
+	void getCalibrationMultipleMaterial(Configuration conf);
 };
 
 #endif /* VIDEOCONNECTOR_H_ */

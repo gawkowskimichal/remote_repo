@@ -21,7 +21,8 @@ Program::~Program() {
 
 int main(int argc, char *argv[]){
 	Program *p = new Program(argc,argv);
-	p->man->getCalibrationMaterial(p->reader->conf,0);
+	//p->man->getCalibrationMaterial(p->reader->conf,0);
+	p->man->getCalibrationMultipleMaterial(p->reader->conf);
 	p->man->shutdown();
 	//p->man->CaptureFrom(0);
 	//p->man->CaptureFrom(1);

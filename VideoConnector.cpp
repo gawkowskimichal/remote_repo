@@ -110,7 +110,30 @@ Mat VideoConnector::captureSnapshot(int i){
 }
 
 vector<Mat> VideoConnector::captureMultipleSnapshot(){
+	Mat frame, frameCopy;
+	vector<Mat> frames;
+	vector<Mat> framesCopies;
 	vector<Mat> result;
+	for(;;){
+		frame = cvQueryFrame( cameras.at(0)->cam );
+		frameCopy = frame.clone();
+		if (!frameCopy.empty()){
+			cv::imshow("Snapshot", frameCopy );
+		}
+		if( waitKey( 10 ) >= 0 ){
+			for(std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){
+					frames.push_back(cvQueryFrame((*it)->cam));
+			}
+			for(std::vector<Mat>::iterator it = frames.begin(); it != frames.end(); ++it){
+							framesCopies.push_back((*it).clone());
+			}
+			destroyWindow("Snapshot");
+			break;
+		}
+	}
+	for(std::vector<Mat>::iterator it = framesCopies.begin(); it != framesCopies.end(); ++it){
+		result.push_back((*it).clone());
+	}
 	return result;
 };
 
@@ -128,15 +151,30 @@ void VideoConnector::getCalibrationMaterial(Configuration conf, int i){
 	int numberOfSamples = atoi(conf.getValueByKey("numberOfSamples").c_str());
 	String fileName_origin = "cam_" + boost::lexical_cast<std::string>(i) + "_";
 	for (int j = 0; j < numberOfSamples; j++){
-		cout << j << endl;
 		Mat frame = captureSnapshot(i);
-		String snapshot_index;
-		sprintf((char*)snapshot_index.c_str(), "%d", j);
 		String fileName_version = pathToCalibrationDir +"/" +fileName_origin + boost::lexical_cast<std::string>(j) + ".png";
 		saveImageToFile(frame,fileName_version);
 		cout << "Image saved: " << fileName_version << endl;
 	}
 }
+
+void VideoConnector::getCalibrationMultipleMaterial(Configuration conf){
+	String pathToCalibrationDir= conf.getValueByKey("pathToCalibrationDir");
+	int numberOfSamples = atoi(conf.getValueByKey("numberOfSamples").c_str());
+	vector<String> files;
+	for (int i = 0; i < CameraCounter; i++){
+		files.push_back(pathToCalibrationDir +"/"+"cam_"+ boost::lexical_cast<std::string>(i) + "_");
+	}
+	for (int j = 0; j < numberOfSamples; j++){
+		cout << j << endl;
+		vector<Mat> snapshots = captureMultipleSnapshot();
+		for (int i = 0; i < CameraCounter; i++){
+			String fileName = files.at(i) + boost::lexical_cast<std::string>(j) + ".png";
+			saveImageToFile(snapshots.at(i),fileName);
+			cout << "Image saved: " << fileName << endl;
+		}
+	}
+};
 
 void VideoConnector::initCameras(Configuration conf){
 	CameraCounter = getCameraCount(conf);

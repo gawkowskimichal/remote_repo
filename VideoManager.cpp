@@ -30,6 +30,10 @@ void VideoManager::CaptureMultiple(){
 	result = connector->captureMultipleVideo();
 }
 
+void VideoManager::getCalibrationMultipleMaterial(Configuration conf){
+	connector->getCalibrationMultipleMaterial(conf);
+};
+
 void VideoManager::shutdown(){
 	connector->shutdownCameras();
 }
