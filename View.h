@@ -6,13 +6,15 @@
  */
 #include <gtkmm.h>
 #include "Configuration.h"
+#include "VideoManager.h"
 #include <iostream>
 #ifndef VIEW_H_
 #define VIEW_H_
 
 class View {
 public:
-	View(int argc, char *argv[], Configuration conf);
+	VideoManager *man;
+	View(int argc, char *argv[], Configuration conf, VideoManager *manager);
 	int startView(int argc, char *argv[], Configuration conf);
 	virtual ~View();
 };
@@ -27,6 +29,9 @@ protected:
 
 public:
     FrmMain(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade);//constructor
+    VideoManager *internalManager;
+    Configuration internalConfiguration;
+    void initManager(VideoManager *man, Configuration conf);
 
 protected:
     //signal handlers

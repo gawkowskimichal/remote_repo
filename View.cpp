@@ -8,7 +8,8 @@
 #include "View.h"
 #include <iostream>
 
-View::View(int argc, char *argv[], Configuration conf) {
+View::View(int argc, char *argv[], Configuration conf, VideoManager *manager) {
+	man = manager;
 	startView(argc,argv,conf);
 }
 
@@ -18,6 +19,7 @@ int View::startView(int argc, char *argv[], Configuration conf){
     Glib::RefPtr<Gtk::Builder> refBuilder = Gtk::Builder::create_from_file(GladeFile);
     FrmMain *frm = 0;
     refBuilder->get_widget_derived("menu", frm);
+    frm->initManager(man,conf);
     kit.run(*frm);
     return 0;
 }
@@ -41,6 +43,10 @@ FrmMain::FrmMain(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refG
     btnExit->signal_clicked().connect(sigc::mem_fun(*this, &FrmMain::on_btnExit_clicked));
 }
 
+void FrmMain::initManager(VideoManager *man, Configuration conf){
+	internalManager = man;
+	internalConfiguration = conf;
+}
 
 void FrmMain::on_btnExit_clicked(){
 	Gtk::Main::quit();
@@ -57,6 +63,6 @@ void FrmMain::on_btnKonfiguracja_clicked(){
 
 
 void FrmMain::on_btnKalibracja_clicked(){
-
+	internalManager->getCalibrationMultipleMaterial(internalConfiguration);
 }
 
