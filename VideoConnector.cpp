@@ -109,6 +109,70 @@ Mat VideoConnector::captureSnapshot(int i){
 	    return frameCopy.clone();
 }
 
+void VideoConnector::captureVideoToFile(int i, Configuration conf){
+		CvCapture *cap;
+		Mat frame, frameCopy;
+		cap = cameras[i]->cam;
+		if(!cap) cout << "No camera detected" << endl;
+		if( cap ){
+			String output_file = "out" + boost::lexical_cast<std::string>(i) + ".avi";
+			double width = atof(conf.getValueByKey("resolution_y").c_str());
+			double height = atof(conf.getValueByKey("resolution_x").c_str());
+			VideoWriter video(output_file,CV_FOURCC('M','J','P','G'),10, Size(width,height),true);
+			for(;;){
+				frame = cvQueryFrame( cap );
+				frameCopy = frame.clone();
+				if (!frameCopy.empty()){
+					cv::imshow("VideoCapture", frameCopy );
+					video.write(frameCopy);
+				}
+				char c = (char)waitKey(33);
+				if( c == 27 ){
+					destroyWindow("VideoCapture");
+					break;
+				}
+			}
+		}
+			    return;
+}
+
+void VideoConnector::captureMultipleVideoToFiles(Configuration conf){
+		Mat frame, frameCopy;
+		vector<Mat> frames;
+		vector<Mat> framesCopies;
+		vector<VideoWriter*> writers;
+		VideoWriter *temp;
+		int i = 0;
+		double width = atof(conf.getValueByKey("resolution_y").c_str());
+		double height = atof(conf.getValueByKey("resolution_x").c_str());
+		for(std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){
+			String fileName = "out_multiple_"+boost::lexical_cast<std::string>(i)+".avi";
+			temp = new VideoWriter(fileName,CV_FOURCC('M','J','P','G'),10, Size(width,height),true);
+			writers.push_back(temp);
+			i++;
+		}
+		for(;;){
+			frame = cvQueryFrame( cameras.at(0)->cam );
+			frameCopy = frame.clone();
+			if (!frameCopy.empty()){
+				cv::imshow("VideoMultipleCapture", frameCopy );
+				for(int j = 0; j < cameras.size(); j++){
+						frames.push_back(cvQueryFrame(cameras[j]->cam));
+						framesCopies.push_back(frames[j].clone());
+						writers[j]->write(framesCopies[j]);
+						frames.clear();
+						framesCopies.clear();
+				}
+			}
+			char c = (char)waitKey(33);
+			if( c == 27 ){
+				destroyWindow("VideoMultipleCapture");
+				break;
+			}
+		}
+		return;
+}
+
 vector<Mat> VideoConnector::captureMultipleSnapshot(){
 	Mat frame, frameCopy;
 	vector<Mat> frames;

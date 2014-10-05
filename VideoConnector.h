@@ -31,6 +31,8 @@ public:
 	virtual ~VideoConnector();
 	int captureVideo(int i);
 	int captureMultipleVideo();
+	void captureVideoToFile(int i, Configuration conf);
+	void captureMultipleVideoToFiles(Configuration conf);
 	Mat captureSnapshot(int i);
 	vector<Mat> captureMultipleSnapshot();
 	void saveImageToFile(Mat image, String path);
