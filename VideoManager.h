@@ -8,16 +8,22 @@
 #define VIDEOMANAGER_H_
 
 #include "VideoConnector.h"
+#include "ObjectTracker.h"
 #include "Configuration.h"
 #include <thread>
 
 using namespace std;
+using namespace cv;
 
 class VideoManager {
 public:
 	VideoConnector * connector;
+	ObjectTracker *tracker;
 	VideoManager(Configuration conf);
 	virtual ~VideoManager();
+	void TrackInPicture(Mat *picture);
+	void TrackInPictures(vector<Mat*> pictures);
+	void TrackInVideo(String fileName);
 	void CaptureFrom( int i );
 	void CaptureMultiple();
 	void CaptureSnapshotFrom(int i);

@@ -16,6 +16,18 @@ VideoManager::~VideoManager() {
 	// TODO Auto-generated destructor stub
 }
 
+void VideoManager::TrackInPicture(Mat *picture){
+	tracker->trackInPicture(picture);
+};
+
+void VideoManager::TrackInPictures(vector<Mat*> pictures){
+	tracker->trackInPictures(pictures);
+};
+
+void VideoManager::TrackInVideo(String fileName){
+	tracker->trackInVideo(fileName);
+};
+
 void VideoManager::CaptureFrom( int i ){
 	int result = 0;
 	result = connector->captureVideo(i);
