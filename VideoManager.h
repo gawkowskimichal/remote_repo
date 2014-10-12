@@ -14,15 +14,15 @@
 
 using namespace std;
 using namespace cv;
-
+namespace TracingFramework {
 class VideoManager {
 public:
 	VideoConnector * connector;
 	ObjectTracker *tracker;
 	VideoManager(Configuration conf);
 	virtual ~VideoManager();
-	void TrackInPicture(Mat *picture);
-	void TrackInPictures(vector<Mat*> pictures);
+	void TrackInPicture(Mat picture);
+	void TrackInPictures(vector<Mat> pictures);
 	void TrackInVideo(String fileName);
 	void CaptureFrom( int i );
 	void CaptureMultiple();
@@ -32,5 +32,5 @@ public:
 	void getCalibrationMultipleMaterial(Configuration conf);
 	void shutdown();
 };
-
+}
 #endif /* VIDEOMANAGER_H_ */

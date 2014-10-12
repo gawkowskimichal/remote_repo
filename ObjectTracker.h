@@ -17,14 +17,14 @@
 
 using namespace cv;
 using namespace std;
-
+namespace TracingFramework {
 class ObjectTracker {
 public:
 	ObjectTracker();
 	virtual ~ObjectTracker();
-	virtual void trackInPicture(Mat *picture) = 0;
-	virtual void trackInPictures(vector<Mat*> pictures) = 0;
+	virtual void trackInPicture(Mat picture) = 0;
+	virtual void trackInPictures(vector<Mat> pictures) = 0;
 	virtual void trackInVideo(String filename) = 0;
 };
-
+}
 #endif /* OBJECTTRACKER_H_ */

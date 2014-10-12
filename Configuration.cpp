@@ -6,6 +6,7 @@
  */
 
 #include "Configuration.h"
+using namespace TracingFramework;
 
 Configuration::Configuration() {
 }

@@ -8,6 +8,8 @@
 #include "View.h"
 #include <iostream>
 
+using namespace TracingFramework;
+
 View::View(int argc, char *argv[], Configuration conf, VideoManager *manager) {
 	man = manager;
 	startView(argc,argv,conf);

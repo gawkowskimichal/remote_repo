@@ -6,6 +6,7 @@
  */
 
 #include "ConfReader.h"
+using namespace TracingFramework;
 
 ConfReader::ConfReader() {
 	readConf();

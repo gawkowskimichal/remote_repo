@@ -6,6 +6,7 @@
  */
 
 #include "VideoManager.h"
+using namespace TracingFramework;
 
 VideoManager::VideoManager(Configuration conf) {
 	connector = new VideoConnector();
@@ -16,11 +17,11 @@ VideoManager::~VideoManager() {
 	// TODO Auto-generated destructor stub
 }
 
-void VideoManager::TrackInPicture(Mat *picture){
+void VideoManager::TrackInPicture(Mat picture){
 	tracker->trackInPicture(picture);
 };
 
-void VideoManager::TrackInPictures(vector<Mat*> pictures){
+void VideoManager::TrackInPictures(vector<Mat> pictures){
 	tracker->trackInPictures(pictures);
 };
 

@@ -9,6 +9,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace TracingFramework;
 
 Camera::Camera(int i) {
 	this->index = i;

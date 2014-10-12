@@ -14,6 +14,8 @@
 #include <gtkmm.h>
 #include <iostream>
 
+using namespace TracingFramework;
+
 class Program {
 public:
 	VideoManager * man;

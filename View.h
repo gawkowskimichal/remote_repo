@@ -10,7 +10,7 @@
 #include <iostream>
 #ifndef VIEW_H_
 #define VIEW_H_
-
+namespace TracingFramework {
 class View {
 public:
 	VideoManager *man;
@@ -40,5 +40,5 @@ protected:
     void on_btnKonfiguracja_clicked();
     void on_btnExit_clicked();
 };
-
+}
 #endif /* VIEW_H_ */

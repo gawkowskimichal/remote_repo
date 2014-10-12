@@ -12,7 +12,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 using namespace cv;
-
+namespace TracingFramework {
 class Camera {
 public:
 	int index;
@@ -22,5 +22,6 @@ public:
 	void setCaptureOption(int option, double value);
 	virtual ~Camera();
 };
+}
 
 #endif /* CAMERA_H_ */

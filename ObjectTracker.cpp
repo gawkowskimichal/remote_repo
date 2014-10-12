@@ -6,6 +6,7 @@
  */
 
 #include "ObjectTracker.h"
+using namespace TracingFramework;
 
 ObjectTracker::ObjectTracker() {
 	// TODO Auto-generated constructor stub

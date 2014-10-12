@@ -11,7 +11,7 @@
 #include <iostream>
 #include <map>
 #include <string>
-
+namespace TracingFramework {
 class Configuration {
 public:
 	struct data {
@@ -25,5 +25,5 @@ public:
 	std::string getValueByKey(std::string key);
 	void setValueOfKey(std::string key, std::string value);
 };
-
+}
 #endif /* CONF_H_ */

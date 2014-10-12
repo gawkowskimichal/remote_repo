@@ -20,7 +20,7 @@
 
 using namespace cv;
 using namespace std;
-
+namespace TracingFramework {
 class VideoConnector {
 public:
 	int CameraCounter;
@@ -45,5 +45,5 @@ public:
 	void getCalibrationMaterial(Configuration conf, int i);
 	void getCalibrationMultipleMaterial(Configuration conf);
 };
-
+}
 #endif /* VIDEOCONNECTOR_H_ */

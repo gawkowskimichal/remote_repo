@@ -8,6 +8,7 @@
 #include "VideoConnector.h"
 using namespace std;
 using namespace cv;
+using namespace TracingFramework;
 
 VideoConnector::VideoConnector() {
 	CameraCounter = 0;
@@ -147,7 +148,7 @@ void VideoConnector::captureMultipleVideoToFiles(Configuration conf){
 		double height = atof(conf.getValueByKey("resolution_x").c_str());
 		for(std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){
 			String fileName = "out_multiple_"+boost::lexical_cast<std::string>(i)+".avi";
-			temp = new VideoWriter(fileName,CV_FOURCC('M','J','P','G'),10, Size(width,height),true);
+			temp = new VideoWriter(fileName,CV_FOURCC('M','J','P','G'),5, Size(width,height),true);
 			writers.push_back(temp);
 			i++;
 		}

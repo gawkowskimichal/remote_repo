@@ -12,7 +12,7 @@
 #include <string>
 #include <fstream>
 #include "Configuration.h"
-
+namespace TracingFramework {
 class ConfReader {
 public:
 	Configuration conf;
@@ -20,5 +20,5 @@ public:
 	void readConf();
 	virtual ~ConfReader();
 };
-
+}
 #endif /* CONFREADER_H_ */
