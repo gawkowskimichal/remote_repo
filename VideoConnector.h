@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include "Configuration.h"
 #include "Camera.h"
+#include <time.h>
+#include <ctime>
 #include <boost/lexical_cast.hpp>
 
 
@@ -31,6 +33,8 @@ public:
 	virtual ~VideoConnector();
 	int captureVideo(int i);
 	int captureMultipleVideo();
+	vector<Mat> captureVideoToVector();
+	vector<vector<Mat>> captureMultipleVideoToVectors();
 	void captureVideoToFile(int i, Configuration conf);
 	void captureMultipleVideoToFiles(Configuration conf);
 	Mat captureSnapshot(int i);
@@ -44,6 +48,7 @@ public:
 	int getCameraCount(Configuration conf);
 	void getCalibrationMaterial(Configuration conf, int i);
 	void getCalibrationMultipleMaterial(Configuration conf);
+	string getTime();
 };
 }
 #endif /* VIDEOCONNECTOR_H_ */

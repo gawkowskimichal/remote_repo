@@ -110,6 +110,53 @@ Mat VideoConnector::captureSnapshot(int i){
 	    return frameCopy.clone();
 }
 
+vector<Mat> VideoConnector::captureVideoToVector(){
+	Mat frame, frameCopy;
+	vector<Mat> result;
+	for(;;){
+			frame = cvQueryFrame( cameras.at(0)->cam );
+			frameCopy = frame.clone();
+			if (!frameCopy.empty()){
+				cv::imshow("Video", frameCopy );
+			}
+			result.push_back(frameCopy);
+			char c = (char)waitKey(33);
+			if( c == 27 ){
+				destroyWindow("Video");
+				break;
+			}
+	}
+	return result;
+};
+
+vector<vector<Mat>> VideoConnector::captureMultipleVideoToVectors(){
+	Mat frame, frameCopy;
+	vector<Mat> frames;
+	vector<Mat> framesCopies;
+	vector<vector<Mat>> result;
+
+	for(;;){
+		frame = cvQueryFrame( cameras.at(0)->cam );
+		frameCopy = frame.clone();
+		if (!frameCopy.empty()){
+			cv::imshow("captureMultipleVideoToVectors", frameCopy );
+			for(int j = 0; j < cameras.size(); j++){
+					frames.push_back(cvQueryFrame(cameras[j]->cam));
+					framesCopies.push_back(frames[j].clone());
+					result.push_back(framesCopies);
+					frames.clear();
+					framesCopies.clear();
+			}
+		}
+		char c = (char)waitKey(33);
+		if( c == 27 ){
+			destroyWindow("captureMultipleVideoToVectors");
+			break;
+		}
+	}
+	return result;
+};
+
 void VideoConnector::captureVideoToFile(int i, Configuration conf){
 		CvCapture *cap;
 		Mat frame, frameCopy;
@@ -283,4 +330,20 @@ int VideoConnector::getCameraCount(Configuration conf){
 		}
 	}
 	return result;
+}
+
+string VideoConnector::getTime(){
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time ( &rawtime );
+	timeinfo = localtime (&rawtime);
+
+	const int size = 16;
+	char buffer [size];
+
+	strftime (buffer,size,"%Y%b%d%H%M%S",timeinfo);
+	std::string time(buffer, size-1);
+
+	return time;
 }
