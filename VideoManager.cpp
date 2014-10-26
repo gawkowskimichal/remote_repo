@@ -17,11 +17,11 @@ VideoManager::~VideoManager() {
 	// TODO Auto-generated destructor stub
 }
 
-void VideoManager::TrackInPicture(Mat picture){
-	tracker->trackInPicture(picture);
+void VideoManager::TrackInPicture(Mat picture, String time){
+	tracker->trackInPicture(picture,time);
 };
 
-void VideoManager::TrackInPictures(vector<Mat> pictures){
+void VideoManager::TrackInPictures(vector<std::pair<Mat,String>> pictures){
 	tracker->trackInPictures(pictures);
 };
 

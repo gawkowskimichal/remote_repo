@@ -33,8 +33,8 @@ public:
 	virtual ~VideoConnector();
 	int captureVideo(int i);
 	int captureMultipleVideo();
-	vector<Mat> captureVideoToVector();
-	vector<vector<Mat>> captureMultipleVideoToVectors();
+	vector<std::pair<Mat,String>> captureVideoToVector();
+	vector<vector<std::pair<Mat,String>>> captureMultipleVideoToVectors();
 	void captureVideoToFile(int i, Configuration conf);
 	void captureMultipleVideoToFiles(Configuration conf);
 	Mat captureSnapshot(int i);

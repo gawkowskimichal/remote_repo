@@ -28,9 +28,10 @@ public:
 	double marker_size;
 	BallObjectTracker(Configuration conf, String calibfn);
 	virtual ~BallObjectTracker();
-	void trackInPicture(Mat picture);
-	void trackInPictures(vector<Mat> pictures);
-	void trackInVideo(String filename);
+	String trackInPicture(Mat picture, String time);
+	vector<String> trackInPictures(vector<std::pair<Mat,String>> pictures);
+	vector<String> trackInVideo(String filename);
+	void saveTrackToFile(vector<String> pos, String filename);
 };
 
 } /* namespace TracingFramework */

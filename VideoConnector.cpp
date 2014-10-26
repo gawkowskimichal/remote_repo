@@ -110,16 +110,16 @@ Mat VideoConnector::captureSnapshot(int i){
 	    return frameCopy.clone();
 }
 
-vector<Mat> VideoConnector::captureVideoToVector(){
+vector<std::pair<Mat,String>> VideoConnector::captureVideoToVector(){
 	Mat frame, frameCopy;
-	vector<Mat> result;
+	vector<std::pair<Mat,String>> result;
 	for(;;){
 			frame = cvQueryFrame( cameras.at(0)->cam );
 			frameCopy = frame.clone();
 			if (!frameCopy.empty()){
 				cv::imshow("Video", frameCopy );
 			}
-			result.push_back(frameCopy);
+			result.push_back(std::make_pair(frameCopy,getTime()));
 			char c = (char)waitKey(33);
 			if( c == 27 ){
 				destroyWindow("Video");
@@ -129,11 +129,11 @@ vector<Mat> VideoConnector::captureVideoToVector(){
 	return result;
 };
 
-vector<vector<Mat>> VideoConnector::captureMultipleVideoToVectors(){
+vector<vector<std::pair<Mat,String>>> VideoConnector::captureMultipleVideoToVectors(){
 	Mat frame, frameCopy;
 	vector<Mat> frames;
-	vector<Mat> framesCopies;
-	vector<vector<Mat>> result;
+	vector<std::pair<Mat,String>> framesCopies;
+	vector<vector<std::pair<Mat,String>>> result;
 
 	for(;;){
 		frame = cvQueryFrame( cameras.at(0)->cam );
@@ -142,7 +142,7 @@ vector<vector<Mat>> VideoConnector::captureMultipleVideoToVectors(){
 			cv::imshow("captureMultipleVideoToVectors", frameCopy );
 			for(int j = 0; j < cameras.size(); j++){
 					frames.push_back(cvQueryFrame(cameras[j]->cam));
-					framesCopies.push_back(frames[j].clone());
+					framesCopies.push_back(std::make_pair(frames[j].clone(),getTime()));
 					result.push_back(framesCopies);
 					frames.clear();
 					framesCopies.clear();

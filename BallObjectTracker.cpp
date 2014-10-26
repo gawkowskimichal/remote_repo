@@ -18,13 +18,26 @@ BallObjectTracker::~BallObjectTracker() {
 	// TODO Auto-generated destructor stub
 }
 
-void BallObjectTracker::trackInPicture(Mat picture){
+String BallObjectTracker::trackInPicture(Mat picture, String time){
+	String result;
+	return result;
+};
+vector<String> BallObjectTracker::trackInPictures(vector<std::pair<Mat,String>> pictures){
+	vector<String> result;
+	String partial;
+	for (std::vector<std::pair<Mat,String>>::iterator it = pictures.begin(); it != pictures.end(); ++it){
+		partial = trackInPicture((*it).first,(*it).second);
+		result.push_back(partial);
+	}
+	return result;
+};
+
+vector<String> BallObjectTracker::trackInVideo(String filename){
 
 };
-void BallObjectTracker::trackInPictures(vector<Mat> pictures){
+
+void BallObjectTracker::saveTrackToFile(vector<String> pos, String filename){
 
 };
-void BallObjectTracker::trackInVideo(String filename){
 
-};
 } /* namespace TracingFramework */

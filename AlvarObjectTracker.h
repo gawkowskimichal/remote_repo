@@ -17,6 +17,7 @@
 #include "Camera.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <boost/lexical_cast.hpp>
 
 using namespace cv;
 using namespace std;
@@ -26,11 +27,14 @@ public:
 	Configuration *config;
 	alvar::Camera cam;
 	double marker_size;
+	Mat cameraMatrix, distCoeffs;
 	AlvarObjectTracker(Configuration conf, String calibfn);
 	virtual ~AlvarObjectTracker();
-	void trackInPicture(Mat picture);
-	void trackInPictures(vector<Mat> pictures);
-	void trackInVideo(String filename);
+	String trackInPicture(Mat picture, String time);
+	vector<String> trackInPictures(vector<std::pair<Mat,String>> pictures);
+	vector<String> trackInVideo(String filename);
+	void saveTrackToFile(vector<String> pos, String filename);
+	bool readCameraParams( String calib_file, Mat& cameraMatrix, Mat& distCoeffs );
 };
 }
 #endif /* ALVAROBJECTTRACKER_H_ */

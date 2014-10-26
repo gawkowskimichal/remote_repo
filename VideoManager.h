@@ -21,8 +21,8 @@ public:
 	ObjectTracker *tracker;
 	VideoManager(Configuration conf);
 	virtual ~VideoManager();
-	void TrackInPicture(Mat picture);
-	void TrackInPictures(vector<Mat> pictures);
+	void TrackInPicture(Mat picture, String time);
+	void TrackInPictures(vector<std::pair<Mat,String>> pictures);
 	void TrackInVideo(String fileName);
 	void CaptureFrom( int i );
 	void CaptureMultiple();
