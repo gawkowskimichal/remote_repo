@@ -36,3 +36,13 @@ double ObjectTracker::getTimeDiff(String start, String stop){
 	time_t end_time = getTimeFromString(stop);
 	return difftime(end_time, start_time);
 };
+
+Point3f ObjectTracker::getSpeed(Point3f start_pos, String start_time, Point3f stop_pos, String stop_time){
+	Point3f pos_diff = getPositionDiff(start_pos, stop_pos);
+	double time_diff = getTimeDiff(start_time, stop_time);
+	if (time_diff != 0){
+		return Point3f(pos_diff.x/time_diff,pos_diff.y/time_diff,pos_diff.z/time_diff);
+	} else {
+		return Point3f(0,0,0);
+	}
+};

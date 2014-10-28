@@ -31,6 +31,7 @@ public:
 	Point3f getPositionDiff(Point3f start, Point3f end);
 	double getTimeDiff(String start, String stop);
 	time_t getTimeFromString(String time_string);
+	Point3f getSpeed(Point3f start_pos, String start_time, Point3f stop_pos, String stop_time);
 };
 }
 #endif /* OBJECTTRACKER_H_ */
