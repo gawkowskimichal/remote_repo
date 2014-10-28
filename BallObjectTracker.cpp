@@ -7,19 +7,48 @@
 
 #include "BallObjectTracker.h"
 
-namespace TracingFramework {
+using namespace cv;
+using namespace TracingFramework;
 
 BallObjectTracker::BallObjectTracker(Configuration conf, String calibfn) {
 	calibrationFile = calibfn;
 	config = &conf;
+	readCameraParams(calibrationFile, cameraMatrix, distCoeffs);
 }
 
 BallObjectTracker::~BallObjectTracker() {
 	// TODO Auto-generated destructor stub
 }
 
+bool BallObjectTracker::readCameraParams( string calib_file, Mat& cameraMatrix, Mat& distCoeffs ) {
+    cv::FileStorage fs( calib_file, FileStorage::READ );
+    bool fsIsOpened = fs.isOpened();
+    if(fsIsOpened)
+    {
+        fs["Camera_Matrix"] >> cameraMatrix;
+        fs["Distortion_Coefficients"] >> distCoeffs;
+    }
+    return fsIsOpened;
+}
+
 String BallObjectTracker::trackInPicture(Mat picture, String time){
 	String result;
+	Mat pic_gray;
+	cvtColor( picture, pic_gray, CV_BGR2GRAY );
+	GaussianBlur( pic_gray, pic_gray, Size(9, 9), 2, 2 );
+    vector<Vec3f> circles;
+    HoughCircles( pic_gray, circles, CV_HOUGH_GRADIENT, 1, pic_gray.rows/8, 200, 100, 0, 0 );
+    for( size_t i = 0; i < circles.size(); i++ ){
+    	vector<Point2f> orgPoint;
+		orgPoint.push_back(Point2f(circles[i][0], circles[i][1]));
+		vector<Point2f> udorgPoint(orgPoint);
+		vector<Point2f> rorgPoint(orgPoint);
+		undistortPoints(orgPoint, udorgPoint, cameraMatrix, distCoeffs);
+		Mat homography;
+		homography = findHomography(orgPoint, udorgPoint, homography);
+		perspectiveTransform( udorgPoint, rorgPoint, homography);
+		result += boost::lexical_cast<std::string>(rorgPoint[0].x) + " " + boost::lexical_cast<std::string>(rorgPoint[0].y) + " " + time;
+	  }
 	return result;
 };
 vector<String> BallObjectTracker::trackInPictures(vector<std::pair<Mat,String>> pictures){
@@ -33,11 +62,11 @@ vector<String> BallObjectTracker::trackInPictures(vector<std::pair<Mat,String>> 
 };
 
 vector<String> BallObjectTracker::trackInVideo(String filename){
-
+	vector<String> result;
+	return result;
 };
 
 void BallObjectTracker::saveTrackToFile(vector<String> pos, String filename){
 
 };
 
-} /* namespace TracingFramework */

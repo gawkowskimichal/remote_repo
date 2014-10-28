@@ -21,6 +21,7 @@ AlvarObjectTracker::AlvarObjectTracker(Configuration conf, String calibfn) {
 	readCameraParams(calibfn, cameraMatrix, distCoeffs);
 }
 
+
 bool AlvarObjectTracker::readCameraParams( string calib_file, Mat& cameraMatrix, Mat& distCoeffs ) {
     cv::FileStorage fs( calib_file, FileStorage::READ );
     bool fsIsOpened = fs.isOpened();
@@ -71,7 +72,7 @@ String AlvarObjectTracker::trackInPicture(Mat picture, String time){
 		homography = findHomography(orgPoint, udorgPoint, homography);
 		perspectiveTransform( udorgPoint, rorgPoint, homography);
 		for (int i = 0; i < 2; ++i) {
-			result = boost::lexical_cast<std::string>(rorgPoint[i].x) + " " + boost::lexical_cast<std::string>(rorgPoint[i].y) + " " + time;
+			result += boost::lexical_cast<std::string>(rorgPoint[i].x) + " " + boost::lexical_cast<std::string>(rorgPoint[i].y) + " " + time;
 		}
 	}
 	return result;
