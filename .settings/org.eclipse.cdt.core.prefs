@@ -1,0 +1,14 @@
+eclipse.preferences.version=1
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1142360212/LD_LIBRARY_PATH/delimiter=\:
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1142360212/LD_LIBRARY_PATH/operation=append
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1142360212/LD_LIBRARY_PATH/value=${PATH}\:/home/mgawkowski/Desktop/projekty/MGR/alvar-2.0.0-sdk-linux32-gcc44/bin/
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1142360212/PATH/delimiter=\:
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1142360212/PATH/operation=replace
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1142360212/PATH/value=/bin\:/opt/intel/composer_xe_2013_sp1.1.106/bin/ia32\:/usr/lib/qt-3.3/bin\:/usr/local/bin\:/usr/bin\:/usr/local/sbin\:/usr/sbin\:/home/mgawkowski/.local/bin\:/home/mgawkowski/bin\:/home/mgawkowski/Desktop/projekty/MGR/alvar-2.0.0-sdk-linux32-gcc44/bin/
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1142360212/append=true
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1142360212/appendContributed=true
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.1066351545/LD_LIBRARY_PATH/delimiter=\:
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.1066351545/LD_LIBRARY_PATH/operation=append
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.1066351545/LD_LIBRARY_PATH/value=${PATH}\:/home/mgawkowski/Desktop/projekty/MGR/alvar-2.0.0-sdk-linux32-gcc44/bin/
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.1066351545/append=true
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.1066351545/appendContributed=true

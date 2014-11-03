@@ -22,6 +22,14 @@ public:
 	View * view;
 	ConfReader * reader;
 	Program(int argc, char *argv[]);
+	void test_Video();
+	void test_vector_capture();
+	void test_VideoMult();
+	void test_vector_capture_mult();
+	void test_alvar_tracking();
+	void test_alvar_tracking_mult();
+	void test_ball_tracking();
+	void test_ball_tracking_mult();
 	virtual ~Program();
 
 };

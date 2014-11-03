@@ -30,6 +30,10 @@ public:
 	void CaptureSnapshotFromBoth();
 	void getCalibrationMaterial(Configuration conf, int i);
 	void getCalibrationMultipleMaterial(Configuration conf);
+	void captureVideoToFileFromCam(int i, Configuration conf);
+	void captureVideoToFilesFromCams(Configuration conf);
+	vector<std::pair<Mat,String>> captureToMemory(int i, Configuration conf);
+	vector<vector<std::pair<Mat,String>>> captureToMemoryMultiple(Configuration conf);
 	void shutdown();
 };
 }

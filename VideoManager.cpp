@@ -50,3 +50,18 @@ void VideoManager::getCalibrationMultipleMaterial(Configuration conf){
 void VideoManager::shutdown(){
 	connector->shutdownCameras();
 }
+
+void VideoManager::captureVideoToFileFromCam(int i, Configuration conf){
+	connector->captureVideoToFile(i,conf);
+};
+
+void VideoManager::captureVideoToFilesFromCams(Configuration conf){
+	connector->captureMultipleVideoToFiles(conf);
+};
+
+vector<std::pair<Mat,String>> VideoManager::captureToMemory(int i, Configuration conf){
+	return connector->captureVideoToVector();
+};
+vector<vector<std::pair<Mat,String>>> VideoManager::captureToMemoryMultiple(Configuration conf){
+	return connector->captureMultipleVideoToVectors();
+};
