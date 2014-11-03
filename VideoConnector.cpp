@@ -166,7 +166,7 @@ void VideoConnector::captureVideoToFile(int i, Configuration conf){
 			String output_file = "out" + boost::lexical_cast<std::string>(i) + ".avi";
 			double width = atof(conf.getValueByKey("resolution_y").c_str());
 			double height = atof(conf.getValueByKey("resolution_x").c_str());
-			VideoWriter video(output_file,CV_FOURCC('M','J','P','G'),10, Size(width,height),true);
+			VideoWriter video(output_file,CV_FOURCC('M','J','P','G'),1, Size(width,height),true);
 			for(;;){
 				frame = cvQueryFrame( cap );
 				frameCopy = frame.clone();
@@ -174,12 +174,13 @@ void VideoConnector::captureVideoToFile(int i, Configuration conf){
 					cv::imshow("VideoCapture", frameCopy );
 					video.write(frameCopy);
 				}
-				char c = (char)waitKey(33);
+				char c = (char)waitKey(30);
 				if( c == 27 ){
 					destroyWindow("VideoCapture");
 					break;
 				}
 			}
+			video.release();
 		}
 			    return;
 }
