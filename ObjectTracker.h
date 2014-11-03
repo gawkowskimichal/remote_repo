@@ -25,8 +25,6 @@ public:
 	virtual String trackInPicture(Mat picture, String time) = 0;
 	virtual vector<String> trackInPictures(vector<std::pair<Mat,String>> pictures) = 0;
 	virtual vector<String> trackInVideo(String filename) = 0;
-	virtual vector<String> getTrack(vector<std::pair<Mat,String>> pictures) = 0;
-	virtual vector<String> getTrack(String filename) = 0;
 	virtual void saveTrackToFile(vector<String> pos, String filename) = 0;
 	Point3f getPositionDiff(Point3f start, Point3f end);
 	double getTimeDiff(String start, String stop);

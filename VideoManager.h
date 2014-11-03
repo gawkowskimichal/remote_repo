@@ -9,6 +9,8 @@
 
 #include "VideoConnector.h"
 #include "ObjectTracker.h"
+#include "AlvarObjectTracker.h"
+#include "BallObjectTracker.h"
 #include "Configuration.h"
 #include <thread>
 
