@@ -16,6 +16,7 @@
 #include <time.h>
 #include <ctime>
 #include <boost/lexical_cast.hpp>
+#include <boost/thread/condition_variable.hpp>
 
 
 #ifndef VIDEOCONNECTOR_H_
@@ -30,6 +31,9 @@ public:
 	std::vector<Camera*> cameras;
 	CvCapture *capture1, *capture2;
 	Mat frame1, frameCopy1, image1, frame2, frameCopy2, image2;
+	int internalCounter;
+	boost::condition_variable images_to_write;
+	boost::mutex file_mutex;
 	VideoConnector();
 	virtual ~VideoConnector();
 	int captureVideo(int i);

@@ -25,6 +25,7 @@ public:
 	vector<ObjectTracker*> trackers;
 	boost::thread capturing_thread;
 	boost::thread tracking_thread;
+	int ReaderCounter;
 	VideoManager(Configuration conf);
 	virtual ~VideoManager();
 	void initTrackers(Configuration conf);

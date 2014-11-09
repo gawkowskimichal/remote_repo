@@ -12,6 +12,7 @@ using namespace TracingFramework;
 
 VideoConnector::VideoConnector() {
 	CameraCounter = 0;
+	internalCounter = 0;
 };
 
 VideoConnector::~VideoConnector() {
@@ -160,7 +161,6 @@ vector<vector<std::pair<Mat,String>>> VideoConnector::captureMultipleVideoToVect
 int VideoConnector::captureVideoToFilesWithInfo(Configuration conf){
 	int res = 0;
 	Mat frame, frameCopy;
-	int counter = 0;
 	string path_to_dir = conf.getValueByKey("pathToWorkDir");
 	string path_to_info_file = conf.getValueByKey("pathToTimestampFile");
 	string time_s;
@@ -172,15 +172,16 @@ int VideoConnector::captureVideoToFilesWithInfo(Configuration conf){
 				cv::imshow("Video", frameCopy );
 			}
 			time_s = getTime();
-			fileName = path_to_dir+"_img_"+boost::lexical_cast<std::string>(counter)+".jpg";
+			fileName = path_to_dir+"_img_"+boost::lexical_cast<std::string>(internalCounter)+".jpg";
 			saveImageToFile(frameCopy,fileName);
-			saveInfoToFile(path_to_info_file, fileName + " " + time_s+" "+boost::lexical_cast<std::string>(counter));
+			saveInfoToFile(path_to_info_file, fileName + " " + time_s+" "+boost::lexical_cast<std::string>(internalCounter));
 			char c = (char)waitKey(33);
 			if( c == 27 ){
 				destroyWindow("Video");
 				break;
 			}
-			counter++;
+			internalCounter++;
+			images_to_write.notify_one();
 	}
 	saveInfoToFile(path_to_info_file, "_END");
 	return res;
@@ -193,7 +194,6 @@ int VideoConnector::captureMultipleVideoToFilesWithInfo(Configuration conf){
 	vector<Mat> framesCopies;
 	string path_to_dir = conf.getValueByKey("pathToWorkDir");
 	string path_to_info_file = conf.getValueByKey("pathToTimestampFile");
-	int counter=0;
 	string time_s;
 	string fileName;
 	for(;;){
@@ -206,9 +206,9 @@ int VideoConnector::captureMultipleVideoToFilesWithInfo(Configuration conf){
 					framesCopies.push_back(frames[j].clone());
 					time_s = getTime();
 					for(std::vector<Mat>::iterator it = framesCopies.begin(); it != framesCopies.end(); ++it){
-						fileName = path_to_dir+"_img_"+boost::lexical_cast<std::string>(counter)+"_"+boost::lexical_cast<std::string>(j)+".jpg";
+						fileName = path_to_dir+"_img_"+boost::lexical_cast<std::string>(internalCounter)+"_"+boost::lexical_cast<std::string>(j)+".jpg";
 						saveImageToFile((*it),fileName);
-						saveInfoToFile(path_to_info_file,fileName + " " + time_s+" "+boost::lexical_cast<std::string>(counter)+"_"+boost::lexical_cast<std::string>(j));
+						saveInfoToFile(path_to_info_file,fileName + " " + time_s+" "+boost::lexical_cast<std::string>(internalCounter)+"_"+boost::lexical_cast<std::string>(j));
 					}
 			}
 			frames.clear();
@@ -219,7 +219,7 @@ int VideoConnector::captureMultipleVideoToFilesWithInfo(Configuration conf){
 			destroyWindow("captureMultipleVideoToVectors");
 			break;
 		}
-		counter++;
+		internalCounter++;
 	}
 	saveInfoToFile(path_to_info_file, "_END");
 	return res;

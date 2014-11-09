@@ -11,6 +11,7 @@ using namespace TracingFramework;
 VideoManager::VideoManager(Configuration conf) {
 	connector = new VideoConnector();
 	connector->initCameras(conf);
+	ReaderCounter = 0;
 }
 
 VideoManager::~VideoManager() {
@@ -95,8 +96,7 @@ Mat VideoManager::readImageFromFile(string path){
 }
 
 void VideoManager::TrackFromFiles(Configuration conf){
-	int last_index = 0;
-	bool file_not_empty = false;
+	bool file_ends = false;
 	vector<std::string> real_positions;
 	vector<string> tokens;
 	initTrackers(conf);
@@ -108,23 +108,49 @@ void VideoManager::TrackFromFiles(Configuration conf){
 	/*
 	 * wait till signaled or check semaphore
 	 * */
-	if (file_not_empty){
-		string line;
-		while (getline(info_file_str,line)){
-			if (line != "_END"){
-				boost::split(tokens,line,boost::is_any_of("\t ")); //filename, timestamp, counter
-				Mat picture = readImageFromFile(tokens[0]);
-				real_positions.push_back(tracker->trackInPicture(picture,tokens[1]));
-				last_index = atoi(tokens[2].c_str());
-			} else {
-				break;
-			};
+	string line;
+	while (!file_ends){
+		if(!getline(info_file_str,line)){
+			boost::mutex::scoped_lock lock(this->connector->file_mutex);
+			this->connector->images_to_write.wait(lock);
+		}
+		if (line == "_END"){
+			file_ends = true;
+		} else {
+			boost::split(tokens,line,boost::is_any_of("\t ")); //filename, timestamp, counter
+			Mat picture = readImageFromFile(tokens[0]);
+			real_positions.push_back(tracker->trackInPicture(picture,tokens[1]));
 		}
 	}
 };
 
 void VideoManager::TrackMultipleFromFiles(Configuration conf){
 	initTrackers(conf);
+	bool file_ends = false;
+	int camera_index = 0;
+	vector<vector<std::string>> real_positions;
+	vector<string> tokens;
+	vector<string> small_tokens;
+	string working_dir = conf.getValueByKey("pathToWorkDir");
+	string info_file = conf.getValueByKey("pathToTimestampFile");
+	ifstream info_file_str;
+	info_file_str.open(info_file.c_str());
+	string line;
+		while (!file_ends){
+			if(!getline(info_file_str,line)){
+				boost::mutex::scoped_lock lock(this->connector->file_mutex);
+				this->connector->images_to_write.wait(lock);
+			}
+			if (line == "_END"){
+				file_ends = true;
+			} else {
+				boost::split(tokens,line,boost::is_any_of("\t ")); //filename, timestamp, counter
+				boost::split(small_tokens,tokens[2],boost::is_any_of("_"));
+				camera_index = atoi(small_tokens[1].c_str());
+				Mat picture = readImageFromFile(tokens[0]);
+				real_positions[camera_index].push_back(trackers[camera_index]->trackInPicture(picture,tokens[1]));
+			}
+		}
 };
 
 void VideoManager::CaptureAndTrack(Configuration conf){
