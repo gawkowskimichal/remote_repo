@@ -30,8 +30,7 @@ void VideoManager::TrackInVideo(String fileName){
 };
 
 void VideoManager::CaptureFrom( int i ){
-	int result = 0;
-	result = connector->captureVideo(i);
+	connector->captureVideo(i);
 }
 
 void VideoManager::getCalibrationMaterial(Configuration conf, int i){
@@ -39,8 +38,7 @@ void VideoManager::getCalibrationMaterial(Configuration conf, int i){
 }
 
 void VideoManager::CaptureMultiple(){
-	int result = 0;
-	result = connector->captureMultipleVideo();
+	connector->captureMultipleVideo();
 }
 
 void VideoManager::getCalibrationMultipleMaterial(Configuration conf){
@@ -64,4 +62,77 @@ vector<std::pair<Mat,String>> VideoManager::captureToMemory(int i, Configuration
 };
 vector<vector<std::pair<Mat,String>>> VideoManager::captureToMemoryMultiple(Configuration conf){
 	return connector->captureMultipleVideoToVectors();
+};
+
+void VideoManager::CaptureToFiles(Configuration conf){
+	connector->captureVideoToFilesWithInfo(conf);
+};
+
+void VideoManager::CaptureMultipleToFiles(Configuration conf){
+	connector->captureMultipleVideoToFilesWithInfo(conf);
+};
+
+void VideoManager::initTrackers(Configuration conf){
+	string marker_type = conf.getValueByKey("marker_type");
+	vector<string> calib_files;
+	for (int i = 0; i < connector->cameras.size(); i++){
+		calib_files.push_back(conf.getValueByKey("calib_"+boost::lexical_cast<std::string>(i)));
+	}
+	if (marker_type == "alvar"){
+		for (int i = 0; i < connector->cameras.size(); i++){
+			trackers.push_back(new AlvarObjectTracker(conf,calib_files[i]));
+		}
+	} else if (marker_type == "ball"){
+		for (int i = 0; i < connector->cameras.size(); i++){
+			trackers.push_back(new BallObjectTracker(conf,calib_files[i]));
+		}
+	}
+};
+
+Mat VideoManager::readImageFromFile(string path){
+	Mat res = this->connector->readImageFromFile(path);
+	return res;
+}
+
+void VideoManager::TrackFromFiles(Configuration conf){
+	int last_index = 0;
+	bool file_not_empty = false;
+	vector<std::string> real_positions;
+	vector<string> tokens;
+	initTrackers(conf);
+	tracker = trackers[0];
+	string working_dir = conf.getValueByKey("pathToWorkDir");
+	string info_file = conf.getValueByKey("pathToTimestampFile");
+	ifstream info_file_str;
+	info_file_str.open(info_file.c_str());
+	/*
+	 * wait till signaled or check semaphore
+	 * */
+	if (file_not_empty){
+		string line;
+		while (getline(info_file_str,line)){
+			if (line != "_END"){
+				boost::split(tokens,line,boost::is_any_of("\t ")); //filename, timestamp, counter
+				Mat picture = readImageFromFile(tokens[0]);
+				real_positions.push_back(tracker->trackInPicture(picture,tokens[1]));
+				last_index = atoi(tokens[2].c_str());
+			} else {
+				break;
+			};
+		}
+	}
+};
+
+void VideoManager::TrackMultipleFromFiles(Configuration conf){
+	initTrackers(conf);
+};
+
+void VideoManager::CaptureAndTrack(Configuration conf){
+	capturing_thread = boost::thread(&VideoManager::CaptureToFiles, this, conf);
+	tracking_thread = boost::thread(&VideoManager::TrackFromFiles, this, conf);
+};
+
+void VideoManager::CaptureAndTrackMultiple(Configuration conf){
+	capturing_thread = boost::thread(&VideoManager::CaptureMultipleToFiles, this, conf);
+	tracking_thread = boost::thread(&VideoManager::TrackMultipleFromFiles, this, conf);
 };

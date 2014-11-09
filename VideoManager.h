@@ -12,7 +12,8 @@
 #include "AlvarObjectTracker.h"
 #include "BallObjectTracker.h"
 #include "Configuration.h"
-#include <thread>
+#include <boost/thread.hpp>
+#include <boost/algorithm/string.hpp>
 
 using namespace std;
 using namespace cv;
@@ -21,8 +22,18 @@ class VideoManager {
 public:
 	VideoConnector * connector;
 	ObjectTracker *tracker;
+	vector<ObjectTracker*> trackers;
+	boost::thread capturing_thread;
+	boost::thread tracking_thread;
 	VideoManager(Configuration conf);
 	virtual ~VideoManager();
+	void initTrackers(Configuration conf);
+	void CaptureToFiles(Configuration conf);
+	void CaptureMultipleToFiles(Configuration conf);
+	void TrackFromFiles(Configuration conf);
+	void TrackMultipleFromFiles(Configuration conf);
+	void CaptureAndTrack(Configuration conf);
+	void CaptureAndTrackMultiple(Configuration conf);
 	void TrackInPicture(Mat picture, String time);
 	void TrackInPictures(vector<std::pair<Mat,String>> pictures);
 	void TrackInVideo(String fileName);
@@ -34,6 +45,7 @@ public:
 	void getCalibrationMultipleMaterial(Configuration conf);
 	void captureVideoToFileFromCam(int i, Configuration conf);
 	void captureVideoToFilesFromCams(Configuration conf);
+	Mat readImageFromFile(String path);
 	vector<std::pair<Mat,String>> captureToMemory(int i, Configuration conf);
 	vector<vector<std::pair<Mat,String>>> captureToMemoryMultiple(Configuration conf);
 	void shutdown();

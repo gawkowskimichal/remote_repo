@@ -43,8 +43,10 @@ void Program::test_vector_capture_mult(){
 void Program::test_alvar_tracking(){
 	vector<std::pair<Mat,String>> res = this->man->captureToMemory(0,this->reader->conf);
 	cout << res.size() << endl;
-	this->man->tracker = new AlvarObjectTracker(this->reader->conf, "../Kalibracja/cam2/out_camera_data0.xml");
+	this->man->tracker = new AlvarObjectTracker(this->reader->conf, "./Debug/out_camera_data4.xml");
+	cout << "After constructor" << endl;
 	vector<String> pos = this->man->tracker->trackInPictures(res);
+	cout << "After tracking" << endl;
 	for (int i = 0; i < pos.size(); i++){
 		cout << pos[i] << endl;
 	}
@@ -57,6 +59,13 @@ void Program::test_alvar_tracking_mult(){
 void Program::test_ball_tracking(){
 	vector<std::pair<Mat,String>> res = this->man->captureToMemory(0,this->reader->conf);
 	cout << res.size() << endl;
+	this->man->tracker = new BallObjectTracker(this->reader->conf, "./Debug/out_camera_data4.xml");
+	cout << "After constructor" << endl;
+	vector<String> pos = this->man->tracker->trackInPictures(res);
+	cout << "After tracking" << endl;
+	for (int i = 0; i < pos.size(); i++){
+		cout << pos[i] << endl;
+	}
 };
 
 void Program::test_ball_tracking_mult(){
@@ -70,9 +79,9 @@ int main(int argc, char *argv[]){
 	//p->test_VideoMult();
 	//p->test_vector_capture();
 	//p->test_vector_capture_mult();
-	p->test_alvar_tracking();
+	//p->test_alvar_tracking();
 //	p->test_alvar_tracking_mult();
-//	p->test_ball_tracking();
+	p->test_ball_tracking();
 //	p->test_ball_tracking_mult();
 	//p->man->getCalibrationMaterial();
 	//p->man->getCalibrationMultipleMaterial(p->reader->conf);

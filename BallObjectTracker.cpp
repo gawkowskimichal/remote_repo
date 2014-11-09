@@ -13,7 +13,10 @@ using namespace TracingFramework;
 BallObjectTracker::BallObjectTracker(Configuration conf, String calibfn) {
 	calibrationFile = calibfn;
 	config = &conf;
-	readCameraParams(calibrationFile, cameraMatrix, distCoeffs);
+	bool params_read = readCameraParams(calibrationFile, cameraMatrix, distCoeffs);
+	if (!params_read){
+		cout << "Calib file not read!" << endl;
+	}
 }
 
 BallObjectTracker::~BallObjectTracker() {
@@ -37,7 +40,8 @@ String BallObjectTracker::trackInPicture(Mat picture, String time){
 	cvtColor( picture, pic_gray, CV_BGR2GRAY );
 	GaussianBlur( pic_gray, pic_gray, Size(9, 9), 2, 2 );
     vector<Vec3f> circles;
-    HoughCircles( pic_gray, circles, CV_HOUGH_GRADIENT, 1, pic_gray.rows/8, 200, 100, 0, 0 );
+    HoughCircles( pic_gray, circles, CV_HOUGH_GRADIENT, 1, pic_gray.rows/8, 100, 25, 0, 0 );
+    cout << "Found circles: " <<  circles.size() << endl;
     for( size_t i = 0; i < circles.size(); i++ ){
     	vector<Point2f> orgPoint;
 		orgPoint.push_back(Point2f(circles[i][0], circles[i][1]));
@@ -45,10 +49,16 @@ String BallObjectTracker::trackInPicture(Mat picture, String time){
 		vector<Point2f> rorgPoint(orgPoint);
 		undistortPoints(orgPoint, udorgPoint, cameraMatrix, distCoeffs);
 		Mat homography;
-		homography = findHomography(orgPoint, udorgPoint, homography);
-		perspectiveTransform( udorgPoint, rorgPoint, homography);
-		result += boost::lexical_cast<std::string>(rorgPoint[0].x) + " " + boost::lexical_cast<std::string>(rorgPoint[0].y) + " " + time;
+		/*homography = findHomography(orgPoint, udorgPoint, homography);
+		perspectiveTransform( udorgPoint, rorgPoint, homography);*/
+		result += boost::lexical_cast<std::string>(i) + " " +
+					"x: " + boost::lexical_cast<std::string>(rorgPoint[0].x) + " " +
+					"y: " + boost::lexical_cast<std::string>(rorgPoint[0].y) + " " +
+					"radius: " + boost::lexical_cast<std::string>(circles[i][2]) + " " +
+					time + " "+
+					"\n";
 	  }
+    result += "\n";
 	return result;
 };
 vector<String> BallObjectTracker::trackInPictures(vector<std::pair<Mat,String>> pictures){

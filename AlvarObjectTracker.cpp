@@ -13,17 +13,25 @@ using namespace alvar;
 using namespace TracingFramework;
 
 AlvarObjectTracker::AlvarObjectTracker(Configuration conf, String calibfn) {
+	cout << "AlvarObjectTracker tracker"<< endl;
 	config = &conf;
 	marker_size = atof(config->getValueByKey("markerSize").c_str());
 	double width = atof(config->getValueByKey("resolution_y").c_str());
 	double height = atof(config->getValueByKey("resolution_x").c_str());
-	cam.SetCalib(calibfn.c_str(), width, height);
-	readCameraParams(calibfn, cameraMatrix, distCoeffs);
+	cout << "readCameraParams"<< endl;
+	bool data_read = readCameraParams(calibfn, cameraMatrix, distCoeffs);
+	if (!data_read){
+		cout << "Calib file didn't read!"<< endl;
+	}
+	//cam.SetCalib(calibfn.c_str(), width, height);
 }
 
 
 bool AlvarObjectTracker::readCameraParams( string calib_file, Mat& cameraMatrix, Mat& distCoeffs ) {
-    cv::FileStorage fs( calib_file, FileStorage::READ );
+    cv::FileStorage fs;
+    cout << "fs" << endl;
+    fs.open( calib_file, FileStorage::READ );
+    cout << "fs open" << endl;
     bool fsIsOpened = fs.isOpened();
     if(fsIsOpened)
     {
@@ -51,6 +59,7 @@ String AlvarObjectTracker::trackInPicture(Mat picture, String time){
 	marker_detector.SetMarkerSize(marker_size);
 	marker_detector.Detect(image_tmp, &cam, true, true);
 	if(marker_detector.markers->size() > 0){
+		cout << "Found sth" << endl;
 		int markerIndx = 0;
 		int cornerIndx = 0;
 		float markerPosX0 = (*(marker_detector.markers))[markerIndx].marker_corners_img[cornerIndx].x;
@@ -67,13 +76,21 @@ String AlvarObjectTracker::trackInPicture(Mat picture, String time){
 		orgPoint.push_back(Point2f(markerPosXY, markerPosYY));
 		vector<Point2f> udorgPoint(orgPoint);
 		vector<Point2f> rorgPoint(orgPoint);
+		cout << "try undistort" << endl;
 		undistortPoints(orgPoint, udorgPoint, cameraMatrix, distCoeffs);
 		Mat homography;
+		/*cout << "try homography" << endl;
 		homography = findHomography(orgPoint, udorgPoint, homography);
-		perspectiveTransform( udorgPoint, rorgPoint, homography);
-		for (int i = 0; i < 2; ++i) {
-			result += boost::lexical_cast<std::string>(rorgPoint[i].x) + " " + boost::lexical_cast<std::string>(rorgPoint[i].y) + " " + time;
+		cout << "try perspectiveTransform" << endl;
+		perspectiveTransform( udorgPoint, rorgPoint, homography);*/
+		cout << "try output" << endl;
+		for (int i = 0; i < 3; ++i) {
+			result += boost::lexical_cast<std::string>(i) + " " +
+						boost::lexical_cast<std::string>(udorgPoint[i].x) + " " +
+						boost::lexical_cast<std::string>(udorgPoint[i].y) + " " +
+						time + "\n";
 		}
+		result += "\n";
 	}
 	return result;
 };
@@ -82,6 +99,7 @@ vector<String> AlvarObjectTracker::trackInPictures(vector<std::pair<Mat,String>>
 	vector<String> result;
 	String partial;
 	for (std::vector<std::pair<Mat,String>>::iterator it = pictures.begin(); it != pictures.end(); ++it){
+		cout << "Tracking in picture" << endl;
 		partial = trackInPicture((*it).first,(*it).second);
 		result.push_back(partial);
 	}

@@ -8,6 +8,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
+#include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include "Configuration.h"
@@ -35,12 +36,15 @@ public:
 	int captureMultipleVideo();
 	vector<std::pair<Mat,String>> captureVideoToVector();
 	vector<vector<std::pair<Mat,String>>> captureMultipleVideoToVectors();
+	int captureVideoToFilesWithInfo(Configuration conf);
+	int captureMultipleVideoToFilesWithInfo(Configuration conf);
 	void captureVideoToFile(int i, Configuration conf);
 	void captureMultipleVideoToFiles(Configuration conf);
 	Mat captureSnapshot(int i);
 	vector<Mat> captureMultipleSnapshot();
 	void saveImageToFile(Mat image, String path);
 	Mat readImageFromFile(String path);
+	void saveInfoToFile(String info, String path);
 	void initCameras(Configuration conf);
 	void setCaptureOptions(Configuration conf);
 	int resetCameras();

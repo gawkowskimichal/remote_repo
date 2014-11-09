@@ -143,10 +143,10 @@ vector<vector<std::pair<Mat,String>>> VideoConnector::captureMultipleVideoToVect
 			for(int j = 0; j < cameras.size(); j++){
 					frames.push_back(cvQueryFrame(cameras[j]->cam));
 					framesCopies.push_back(std::make_pair(frames[j].clone(),getTime()));
-					result.push_back(framesCopies);
-					frames.clear();
-					framesCopies.clear();
 			}
+			result.push_back(framesCopies);
+			frames.clear();
+			framesCopies.clear();
 		}
 		char c = (char)waitKey(33);
 		if( c == 27 ){
@@ -155,6 +155,74 @@ vector<vector<std::pair<Mat,String>>> VideoConnector::captureMultipleVideoToVect
 		}
 	}
 	return result;
+};
+
+int VideoConnector::captureVideoToFilesWithInfo(Configuration conf){
+	int res = 0;
+	Mat frame, frameCopy;
+	int counter = 0;
+	string path_to_dir = conf.getValueByKey("pathToWorkDir");
+	string path_to_info_file = conf.getValueByKey("pathToTimestampFile");
+	string time_s;
+	string fileName;
+	for(;;){
+			frame = cvQueryFrame( cameras.at(0)->cam );
+			frameCopy = frame.clone();
+			if (!frameCopy.empty()){
+				cv::imshow("Video", frameCopy );
+			}
+			time_s = getTime();
+			fileName = path_to_dir+"_img_"+boost::lexical_cast<std::string>(counter)+".jpg";
+			saveImageToFile(frameCopy,fileName);
+			saveInfoToFile(path_to_info_file, fileName + " " + time_s+" "+boost::lexical_cast<std::string>(counter));
+			char c = (char)waitKey(33);
+			if( c == 27 ){
+				destroyWindow("Video");
+				break;
+			}
+			counter++;
+	}
+	saveInfoToFile(path_to_info_file, "_END");
+	return res;
+};
+
+int VideoConnector::captureMultipleVideoToFilesWithInfo(Configuration conf){
+	int res = 0;
+	Mat frame, frameCopy;
+	vector<Mat> frames;
+	vector<Mat> framesCopies;
+	string path_to_dir = conf.getValueByKey("pathToWorkDir");
+	string path_to_info_file = conf.getValueByKey("pathToTimestampFile");
+	int counter=0;
+	string time_s;
+	string fileName;
+	for(;;){
+		frame = cvQueryFrame( cameras.at(0)->cam );
+		frameCopy = frame.clone();
+		if (!frameCopy.empty()){
+			cv::imshow("captureMultipleVideoToVectors", frameCopy );
+			for(int j = 0; j < cameras.size(); j++){
+					frames.push_back(cvQueryFrame(cameras[j]->cam));
+					framesCopies.push_back(frames[j].clone());
+					time_s = getTime();
+					for(std::vector<Mat>::iterator it = framesCopies.begin(); it != framesCopies.end(); ++it){
+						fileName = path_to_dir+"_img_"+boost::lexical_cast<std::string>(counter)+"_"+boost::lexical_cast<std::string>(j)+".jpg";
+						saveImageToFile((*it),fileName);
+						saveInfoToFile(path_to_info_file,fileName + " " + time_s+" "+boost::lexical_cast<std::string>(counter)+"_"+boost::lexical_cast<std::string>(j));
+					}
+			}
+			frames.clear();
+			framesCopies.clear();
+		}
+		char c = (char)waitKey(33);
+		if( c == 27 ){
+			destroyWindow("captureMultipleVideoToVectors");
+			break;
+		}
+		counter++;
+	}
+	saveInfoToFile(path_to_info_file, "_END");
+	return res;
 };
 
 void VideoConnector::captureVideoToFile(int i, Configuration conf){
@@ -250,6 +318,17 @@ vector<Mat> VideoConnector::captureMultipleSnapshot(){
 	return result;
 };
 
+void VideoConnector::saveInfoToFile(String info, String path){
+	try{
+		std::ofstream outfile;
+        outfile.open(path.c_str(), std::ios_base::app);
+		outfile << info << endl;
+	} catch(string obj) {
+		cout << "Error: unable to save info to file:" << path << endl;
+		cout << obj << endl;
+	}
+};
+
 void VideoConnector::saveImageToFile(Mat m, String path){
 	try{
 		imwrite(path,m);
@@ -258,6 +337,16 @@ void VideoConnector::saveImageToFile(Mat m, String path){
 		cout << obj << endl;
 	}
 };
+
+Mat VideoConnector::readImageFromFile(String path){
+	Mat res;
+	try{
+		res = imread(path,CV_LOAD_IMAGE_COLOR);
+	} catch(string obj){
+		cout << "Error: unable to load Mat from file:" << path << endl;
+		cout << obj << endl;
+	}
+}
 
 void VideoConnector::getCalibrationMaterial(Configuration conf, int i){
 	String pathToCalibrationDir= conf.getValueByKey("pathToCalibrationDir");
