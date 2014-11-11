@@ -165,16 +165,21 @@ int VideoConnector::captureVideoToFilesWithInfo(Configuration conf){
 	string path_to_info_file = conf.getValueByKey("pathToTimestampFile");
 	string time_s;
 	string fileName;
+	cout << "Capturing!" << endl;
 	for(;;){
+		cout << "Capturing inside" << endl;
 			frame = cvQueryFrame( cameras.at(0)->cam );
+		cout << "Capturing inside9" << endl;
 			frameCopy = frame.clone();
 			if (!frameCopy.empty()){
 				cv::imshow("Video", frameCopy );
 			}
+		cout << "Capturing inside8" << endl;
 			time_s = getTime();
-			fileName = path_to_dir+"_img_"+boost::lexical_cast<std::string>(internalCounter)+".jpg";
+			fileName = path_to_dir+"/img_"+boost::lexical_cast<std::string>(internalCounter)+".jpg";
 			saveImageToFile(frameCopy,fileName);
 			saveInfoToFile(path_to_info_file, fileName + " " + time_s+" "+boost::lexical_cast<std::string>(internalCounter));
+		cout << "Capturing inside7" << endl;
 			char c = (char)waitKey(33);
 			if( c == 27 ){
 				destroyWindow("Video");
@@ -182,8 +187,10 @@ int VideoConnector::captureVideoToFilesWithInfo(Configuration conf){
 			}
 			internalCounter++;
 			images_to_write.notify_one();
+		cout << "Capturing inside 2" << endl;
 	}
 	saveInfoToFile(path_to_info_file, "_END");
+	images_to_write.notify_one();
 	return res;
 };
 
@@ -206,7 +213,7 @@ int VideoConnector::captureMultipleVideoToFilesWithInfo(Configuration conf){
 					framesCopies.push_back(frames[j].clone());
 					time_s = getTime();
 					for(std::vector<Mat>::iterator it = framesCopies.begin(); it != framesCopies.end(); ++it){
-						fileName = path_to_dir+"_img_"+boost::lexical_cast<std::string>(internalCounter)+"_"+boost::lexical_cast<std::string>(j)+".jpg";
+						fileName = path_to_dir+"/img_"+boost::lexical_cast<std::string>(internalCounter)+"_"+boost::lexical_cast<std::string>(j)+".jpg";
 						saveImageToFile((*it),fileName);
 						saveInfoToFile(path_to_info_file,fileName + " " + time_s+" "+boost::lexical_cast<std::string>(internalCounter)+"_"+boost::lexical_cast<std::string>(j));
 					}
@@ -222,6 +229,7 @@ int VideoConnector::captureMultipleVideoToFilesWithInfo(Configuration conf){
 		internalCounter++;
 	}
 	saveInfoToFile(path_to_info_file, "_END");
+	images_to_write.notify_one();
 	return res;
 };
 
@@ -318,7 +326,7 @@ vector<Mat> VideoConnector::captureMultipleSnapshot(){
 	return result;
 };
 
-void VideoConnector::saveInfoToFile(String info, String path){
+void VideoConnector::saveInfoToFile(String path, String info){
 	try{
 		std::ofstream outfile;
         outfile.open(path.c_str(), std::ios_base::app);
@@ -339,12 +347,13 @@ void VideoConnector::saveImageToFile(Mat m, String path){
 };
 
 Mat VideoConnector::readImageFromFile(String path){
-	Mat res;
 	try{
-		res = imread(path,CV_LOAD_IMAGE_COLOR);
+		return imread(path,CV_LOAD_IMAGE_COLOR);
 	} catch(string obj){
 		cout << "Error: unable to load Mat from file:" << path << endl;
 		cout << obj << endl;
+		Mat res;
+		return res;
 	}
 }
 

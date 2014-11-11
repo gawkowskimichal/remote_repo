@@ -73,6 +73,14 @@ void Program::test_ball_tracking_mult(){
 };
 
 
+void Program::test_tracking_simultanous(){
+	this->man->CaptureAndTrack(this->reader->conf);
+};
+
+void Program::test_tracking_mult_simultanous(){
+	this->man->CaptureAndTrackMultiple(this->reader->conf);
+};
+
 int main(int argc, char *argv[]){
 	Program *p = new Program(argc,argv);
 	//p->test_Video();
@@ -81,8 +89,9 @@ int main(int argc, char *argv[]){
 	//p->test_vector_capture_mult();
 	//p->test_alvar_tracking();
 //	p->test_alvar_tracking_mult();
-	p->test_ball_tracking();
+	//p->test_ball_tracking();
 //	p->test_ball_tracking_mult();
+	p->test_tracking_simultanous();
 	//p->man->getCalibrationMaterial();
 	//p->man->getCalibrationMultipleMaterial(p->reader->conf);
 	//p->man->shutdown();

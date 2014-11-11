@@ -50,14 +50,18 @@ String AlvarObjectTracker::trackInPicture(Mat picture, String time){
 	IplImage image = picture;
 	IplImage *image_tmp = &image;
 	String result;
+	cout << "track1" << endl;
 	bool flip_image = (image_tmp->origin?true:false);
 	if (flip_image) {
 		cvFlip(image_tmp);
 		image_tmp->origin = !image_tmp->origin;
 	}
+	cout << "track2" << endl;
 	static alvar::MarkerDetector<alvar::MarkerData> marker_detector;
+	cout << "track3" << endl;
 	marker_detector.SetMarkerSize(marker_size);
 	marker_detector.Detect(image_tmp, &cam, true, true);
+	cout << "track4" << endl;
 	if(marker_detector.markers->size() > 0){
 		cout << "Found sth" << endl;
 		int markerIndx = 0;
@@ -92,6 +96,7 @@ String AlvarObjectTracker::trackInPicture(Mat picture, String time){
 		}
 		result += "\n";
 	}
+	cout << "track5" << endl;
 	return result;
 };
 

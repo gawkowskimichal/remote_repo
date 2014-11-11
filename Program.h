@@ -30,6 +30,8 @@ public:
 	void test_alvar_tracking_mult();
 	void test_ball_tracking();
 	void test_ball_tracking_mult();
+	void test_tracking_simultanous();
+	void test_tracking_mult_simultanous();
 	virtual ~Program();
 
 };
