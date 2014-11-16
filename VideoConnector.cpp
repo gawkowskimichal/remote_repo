@@ -203,20 +203,25 @@ int VideoConnector::captureMultipleVideoToFilesWithInfo(Configuration conf){
 	string path_to_info_file = conf.getValueByKey("pathToTimestampFile");
 	string time_s;
 	string fileName;
+	int i = 0;
 	for(;;){
 		frame = cvQueryFrame( cameras.at(0)->cam );
 		frameCopy = frame.clone();
 		if (!frameCopy.empty()){
 			cv::imshow("captureMultipleVideoToVectors", frameCopy );
 			for(int j = 0; j < cameras.size(); j++){
-					frames.push_back(cvQueryFrame(cameras[j]->cam));
-					framesCopies.push_back(frames[j].clone());
-					time_s = getTime();
-					for(std::vector<Mat>::iterator it = framesCopies.begin(); it != framesCopies.end(); ++it){
-						fileName = path_to_dir+"/img_"+boost::lexical_cast<std::string>(internalCounter)+"_"+boost::lexical_cast<std::string>(j)+".jpg";
-						saveImageToFile((*it),fileName);
-						saveInfoToFile(path_to_info_file,fileName + " " + time_s+" "+boost::lexical_cast<std::string>(internalCounter)+"_"+boost::lexical_cast<std::string>(j));
-					}
+				frames.push_back(cvQueryFrame(cameras[j]->cam));
+			}
+			for(int j = 0; j < cameras.size(); j++){
+				framesCopies.push_back(frames[j].clone());
+			}
+			time_s = getTime();
+			i = 0;
+			for(std::vector<Mat>::iterator it = framesCopies.begin(); it != framesCopies.end(); ++it){
+				fileName = path_to_dir+"/img_"+boost::lexical_cast<std::string>(internalCounter)+"_"+boost::lexical_cast<std::string>(i)+".jpg";
+				saveImageToFile((*it),fileName);
+				saveInfoToFile(path_to_info_file,fileName + " " + time_s+" "+boost::lexical_cast<std::string>(internalCounter)+"_"+boost::lexical_cast<std::string>(i));
+				i++;
 			}
 			frames.clear();
 			framesCopies.clear();

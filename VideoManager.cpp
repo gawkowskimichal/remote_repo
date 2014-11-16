@@ -152,27 +152,40 @@ void VideoManager::TrackMultipleFromFiles(Configuration conf){
 	ifstream info_file_str;
 	info_file_str.open(info_file.c_str());
 	string line;
-		while (!file_ends){
-			if(!getline(info_file_str,line)){
-				this->connector->images_to_write.wait(lock);
-				info_file_str.close();
-				info_file_str.clear();
-				info_file_str.open(info_file.c_str());
-				info_file_str.seekg(last_postion) ;
-			}
-			if (line == "_END"){
-				file_ends = true;
-			} else {
-				if (line != ""){
-					boost::split(tokens,line,boost::is_any_of(" ")); //filename, timestamp, counter
-					boost::split(small_tokens,tokens[2],boost::is_any_of("_"));
-					camera_index = atoi(small_tokens[1].c_str());
-					Mat picture = readImageFromFile(tokens[0]);
-					real_positions[camera_index].push_back(trackers[camera_index]->trackInPicture(picture,tokens[1]));
-				}
-			}
-			last_postion = info_file_str.tellg();
+	for (int i = 0; i < this->connector->cameras.size(); i++){
+		vector<string> camera_result;
+		real_positions.push_back(camera_result);
+	}
+	while (!file_ends){
+		if(!getline(info_file_str,line)){
+			this->connector->images_to_write.wait(lock);
+			info_file_str.close();
+			info_file_str.clear();
+			info_file_str.open(info_file.c_str());
+			info_file_str.seekg(last_postion) ;
+			cout << "Wall hit" << endl;
 		}
+		if (line == "_END"){
+			file_ends = true;
+			cout << "End of file found" << endl;
+		} else {
+			if (line != ""){
+				boost::split(tokens,line,boost::is_any_of(" ")); //filename, timestamp, counter
+				boost::split(small_tokens,tokens[2],boost::is_any_of("_"));
+				camera_index = atoi(small_tokens[1].c_str());
+				Mat picture = readImageFromFile(tokens[0]);
+				real_positions[camera_index].push_back(trackers[camera_index]->trackInPicture(picture,tokens[1]));
+				cout << "Tracked sth" << endl;
+			}
+		}
+		last_postion = info_file_str.tellg();
+	}
+	for (int i = 0; i < real_positions.size(); i++){
+		for (int j = 0; j<real_positions[i].size(); j++){
+			cout << i << " " << j << endl;
+			cout << real_positions[i][j] << endl;
+		}
+	}
 };
 
 void VideoManager::CaptureAndTrack(Configuration conf){
