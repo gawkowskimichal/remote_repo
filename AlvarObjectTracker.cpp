@@ -47,6 +47,7 @@ AlvarObjectTracker::~AlvarObjectTracker() {
 }
 
 String AlvarObjectTracker::trackInPicture(Mat picture, String time){
+	cout << "track0" << endl;
 	IplImage image = picture;
 	IplImage *image_tmp = &image;
 	String result;

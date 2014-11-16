@@ -95,13 +95,13 @@ Mat VideoManager::readImageFromFile(string path){
 }
 
 void VideoManager::TrackFromFiles(Configuration conf){
-	cout << "tracking1" << endl;
 	bool file_ends = false;
+	int last_postion = 0;
 	tracker = new AlvarObjectTracker(conf,conf.getValueByKey("calib_file_0"));
 	vector<std::string> real_positions;
 	vector<string> tokens;
+	boost::mutex::scoped_lock lock(this->connector->file_mutex);
 	//initTrackers(conf);
-	cout << "tracking2" << endl;
 	string working_dir = conf.getValueByKey("pathToWorkDir");
 	string info_file = conf.getValueByKey("pathToTimestampFile");
 	ifstream info_file_str;
@@ -112,35 +112,26 @@ void VideoManager::TrackFromFiles(Configuration conf){
 	string line;
 	string pos;
 	string time;
-	cout << "tracking3" << endl;
 	while (!file_ends){
 		if(!getline(info_file_str,line)){
-			cout << "tracking4" << endl;
-			boost::mutex::scoped_lock lock(this->connector->file_mutex);
 			this->connector->images_to_write.wait(lock);
+			info_file_str.close();
 			info_file_str.clear();
 			info_file_str.open(info_file.c_str());
+			info_file_str.seekg(last_postion) ;
 		}
 		if (line == "_END"){
-			cout << "tracking END" << endl;
 			file_ends = true;
 		} else {
 			if (line != ""){
-				cout << "tracking5" << endl;
-				cout << "line: " << line << endl;
 				boost::split(tokens,line,boost::is_any_of(" ")); //filename, timestamp, counter
 				cout << tokens.size() << endl;
-				for (int i = 0; i < 3; i++){
-					cout << tokens[i] << endl;
-				}
-				cout << "tracking6" << endl;
 				time = tokens[1];
 				pos = tracker->trackInPicture(readImageFromFile(tokens[0]),time);
-				cout << "tracking7" << endl;
 				real_positions.push_back(pos);
-				cout << "tracking8" << endl;
 			}
 		}
+		last_postion = info_file_str.tellg();
 	}
 	for (int i = 0; i < real_positions.size(); i++){
 		cout << real_positions[i] << endl;
@@ -151,6 +142,8 @@ void VideoManager::TrackMultipleFromFiles(Configuration conf){
 	initTrackers(conf);
 	bool file_ends = false;
 	int camera_index = 0;
+	int last_postion = 0;
+	boost::mutex::scoped_lock lock(this->connector->file_mutex);
 	vector<vector<std::string>> real_positions;
 	vector<string> tokens;
 	vector<string> small_tokens;
@@ -161,8 +154,11 @@ void VideoManager::TrackMultipleFromFiles(Configuration conf){
 	string line;
 		while (!file_ends){
 			if(!getline(info_file_str,line)){
-				boost::mutex::scoped_lock lock(this->connector->file_mutex);
 				this->connector->images_to_write.wait(lock);
+				info_file_str.close();
+				info_file_str.clear();
+				info_file_str.open(info_file.c_str());
+				info_file_str.seekg(last_postion) ;
 			}
 			if (line == "_END"){
 				file_ends = true;
@@ -175,13 +171,13 @@ void VideoManager::TrackMultipleFromFiles(Configuration conf){
 					real_positions[camera_index].push_back(trackers[camera_index]->trackInPicture(picture,tokens[1]));
 				}
 			}
+			last_postion = info_file_str.tellg();
 		}
 };
 
 void VideoManager::CaptureAndTrack(Configuration conf){
 	boost::thread_group group;
 	cout << "Start capture!" << endl;
-	VideoManager::TrackFromFiles(conf);
 	capturing_thread = boost::thread(&VideoManager::CaptureToFiles, this, conf);
 	cout << "Start tracking!" << endl;
 	tracking_thread = boost::thread(&VideoManager::TrackFromFiles, this, conf);

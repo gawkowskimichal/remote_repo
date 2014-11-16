@@ -331,6 +331,7 @@ void VideoConnector::saveInfoToFile(String path, String info){
 		std::ofstream outfile;
         outfile.open(path.c_str(), std::ios_base::app);
 		outfile << info << endl;
+		outfile.close();
 	} catch(string obj) {
 		cout << "Error: unable to save info to file:" << path << endl;
 		cout << obj << endl;
@@ -392,6 +393,7 @@ void VideoConnector::initCameras(Configuration conf){
 	for (int i = 0; i < CameraCounter; i++){
 		Camera *cam = new Camera(i);
 		cameras.push_back(cam);
+		cout << "Initializing camera: " << i << endl;
 	}
 	setCaptureOptions(conf);
 }
