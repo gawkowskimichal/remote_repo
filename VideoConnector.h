@@ -32,6 +32,8 @@ public:
 	CvCapture *capture1, *capture2;
 	Mat frame1, frameCopy1, image1, frame2, frameCopy2, image2;
 	int internalCounter;
+	vector<Mat> CamerasMatrices;
+	vector<Mat> DistCoeffs;
 	boost::condition_variable images_to_write;
 	boost::mutex file_mutex;
 	VideoConnector();
@@ -50,6 +52,7 @@ public:
 	Mat readImageFromFile(String path);
 	void saveInfoToFile(String info, String path);
 	void initCameras(Configuration conf);
+	void initCameraConfigs(Configuration conf);
 	void setCaptureOptions(Configuration conf);
 	int resetCameras();
 	void shutdownCameras();

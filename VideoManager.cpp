@@ -211,3 +211,8 @@ void VideoManager::CaptureAndTrackMultiple(Configuration conf){
 	group.join_all();
 	cout << "End all!" << endl;
 };
+
+void VideoManager::triangulatePointsFromMultipleCameras(Point2f firstImgPoint, Point2f secondImgPoint, Mat firstImg, Mat secondImg){
+
+
+};

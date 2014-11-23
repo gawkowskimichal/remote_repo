@@ -403,6 +403,13 @@ void VideoConnector::initCameras(Configuration conf){
 	setCaptureOptions(conf);
 }
 
+void VideoConnector::initCameraConfigs(Configuration conf){
+	vector<string> calib_files;
+	for (int i = 0; i < cameras.size(); i++){
+			calib_files.push_back(conf.getValueByKey("calib_file_"+boost::lexical_cast<std::string>(i)));
+		}
+}
+
 void VideoConnector::shutdownCameras(){
 	for (int i = 0; i < CameraCounter; i++){
 			cvReleaseCapture(&(cameras[i]->cam));

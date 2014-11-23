@@ -49,6 +49,7 @@ public:
 	Mat readImageFromFile(String path);
 	vector<std::pair<Mat,String>> captureToMemory(int i, Configuration conf);
 	vector<vector<std::pair<Mat,String>>> captureToMemoryMultiple(Configuration conf);
+	void triangulatePointsFromMultipleCameras(Point2f firstImgPoint, Point2f secondImgPoint, Mat firstImg, Mat secondImg);
 	void shutdown();
 };
 }

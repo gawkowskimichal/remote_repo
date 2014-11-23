@@ -83,11 +83,12 @@ String AlvarObjectTracker::trackInPicture(Mat picture, String time){
 		vector<Point2f> rorgPoint(orgPoint);
 		cout << "try undistort" << endl;
 		undistortPoints(orgPoint, udorgPoint, cameraMatrix, distCoeffs);
-		Mat homography;
-		/*cout << "try homography" << endl;
-		homography = findHomography(orgPoint, udorgPoint, homography);
+		Mat imageUndistortedMat;
+		undistort(picture, imageUndistortedMat, cameraMatrix, distCoeffs);
+		vector<Point2f> pointBuf;
+		Mat homography = findHomography(imageUndistortedMat, Size(6,4), float(100), cameraMatrix, distCoeffs, pointBuf);
 		cout << "try perspectiveTransform" << endl;
-		perspectiveTransform( udorgPoint, rorgPoint, homography);*/
+		perspectiveTransform( udorgPoint, rorgPoint, homography);
 		cout << "try output" << endl;
 		for (int i = 0; i < 3; ++i) {
 			result += boost::lexical_cast<std::string>(i) + " " +
@@ -120,3 +121,21 @@ vector<String> AlvarObjectTracker::trackInVideo(String filename){
 void AlvarObjectTracker::saveTrackToFile(vector<String> pos, String filename){
 
 };
+
+Mat AlvarObjectTracker::findHomography(Mat img, Size pattern_size, float squareSize,
+                    Mat intrinsic_matrix, Mat distortion_coeffs, vector<Point2f> &pointBuf)
+{
+    bool found;
+    found = findChessboardCorners( img, pattern_size, pointBuf,
+                                   CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FAST_CHECK | CV_CALIB_CB_NORMALIZE_IMAGE);
+    vector<Point2f> objectPoints;
+    Mat homography;
+    if(pointBuf.size() > 0 && pointBuf.size() == objectPoints.size())
+    {
+        vector<Point2f> cpointBuf(pointBuf);
+        undistortPoints(pointBuf, cpointBuf, intrinsic_matrix, distortion_coeffs);//TODO spr
+        homography = cv::findHomography(cpointBuf, objectPoints, homography);
+        //cout << "homography success" << endl;
+    }
+    return homography;
+}

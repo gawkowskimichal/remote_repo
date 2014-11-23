@@ -35,6 +35,8 @@ public:
 	vector<String> trackInVideo(String filename);
 	void saveTrackToFile(vector<String> pos, String filename);
 	bool readCameraParams( String calib_file, Mat& cameraMatrix, Mat& distCoeffs );
+	Mat findHomography(Mat img, Size pattern_size, float squareSize,
+            Mat intrinsic_matrix, Mat distortion_coeffs, vector<Point2f> &pointBuf);
 };
 }
 #endif /* ALVAROBJECTTRACKER_H_ */
