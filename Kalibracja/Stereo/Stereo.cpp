@@ -189,12 +189,7 @@ StereoCalib(const char* imageList, int nx, int ny, int useUncalibrated, float _s
     cvStereoCalibrate( &_objectPoints, &_imagePoints1,
         &_imagePoints2, &_npoints,
         &_M1, &_D1, &_M2, &_D2,
-        imageSize, &_R, &_T, &_E, &_F,
-        cvTermCriteria(CV_TERMCRIT_ITER+
-        CV_TERMCRIT_EPS, 100, 1e-5),
-        CV_CALIB_FIX_ASPECT_RATIO +
-        CV_CALIB_ZERO_TANGENT_DIST +
-        CV_CALIB_SAME_FOCAL_LENGTH );
+        imageSize, &_R, &_T, &_E, &_F);
     printf(" done\n");
 // CALIBRATION QUALITY CHECK
 // because the output fundamental matrix implicitly

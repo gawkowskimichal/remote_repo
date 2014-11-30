@@ -188,6 +188,51 @@ void VideoManager::TrackMultipleFromFiles(Configuration conf){
 	}
 };
 
+void VideoManager::TrackMultipleFromFilesTriangulate(Configuration conf){
+	initTrackers(conf);
+	bool file_ends = false;
+	int camera_index = 0;
+	int last_postion = 0;
+	boost::mutex::scoped_lock lock(this->connector->file_mutex);
+	vector<vector<vector<Point2f>>> real_positions;
+	vector<string> tokens;
+	vector<string> small_tokens;
+	string working_dir = conf.getValueByKey("pathToWorkDir");
+	string info_file = conf.getValueByKey("pathToTimestampFile");
+	ifstream info_file_str;
+	info_file_str.open(info_file.c_str());
+	string line;
+	for (int i = 0; i < this->connector->cameras.size(); i++){
+		vector<vector<Point2f>> camera_result;
+		real_positions.push_back(camera_result);
+	}
+	while (!file_ends){
+		if(!getline(info_file_str,line)){
+			this->connector->images_to_write.wait(lock);
+			info_file_str.close();
+			info_file_str.clear();
+			info_file_str.open(info_file.c_str());
+			info_file_str.seekg(last_postion) ;
+			cout << "Wall hit" << endl;
+		}
+		if (line == "_END"){
+			file_ends = true;
+			cout << "End of file found" << endl;
+		} else {
+			if (line != ""){
+				boost::split(tokens,line,boost::is_any_of(" ")); //filename, timestamp, counter
+				boost::split(small_tokens,tokens[2],boost::is_any_of("_"));
+				camera_index = atoi(small_tokens[1].c_str());
+				Mat picture = readImageFromFile(tokens[0]);
+				real_positions[camera_index].push_back(trackers[camera_index]->trackInPicturePixels(picture));
+				cout << "Tracked sth" << endl;
+			}
+		}
+		last_postion = info_file_str.tellg();
+	}
+};
+
+
 void VideoManager::CaptureAndTrack(Configuration conf){
 	boost::thread_group group;
 	cout << "Start capture!" << endl;
@@ -211,8 +256,53 @@ void VideoManager::CaptureAndTrackMultiple(Configuration conf){
 	group.join_all();
 	cout << "End all!" << endl;
 };
+void VideoManager::CaptureAndTriangulate(Configuration conf){
+	boost::thread_group group;
+	cout << "Start capture" << endl;
+	capturing_thread = boost::thread(&VideoManager::CaptureMultipleToFiles, this, conf);
+	cout << "Start tracking!" << endl;
+	tracking_thread = boost::thread(&VideoManager::TrackMultipleFromFilesTriangulate, this, conf);
+	group.add_thread(&capturing_thread);
+	group.add_thread(&tracking_thread);
+	group.join_all();
+	cout << "END all!" << endl;
+};
 
-void VideoManager::triangulatePointsFromMultipleCameras(Point2f firstImgPoint, Point2f secondImgPoint, Mat firstImg, Mat secondImg){
+void VideoManager::initQMatrix(Configuration conf, bool reinit){
+	if (Q.data == NULL || reinit){
+		String pathToQ = conf.getValueByKey("Q_file");
+	    cv::FileStorage fs;
+	    fs.open( pathToQ, FileStorage::READ );
+	    bool fsIsOpened = fs.isOpened();
+	    if(fsIsOpened)
+	    {
+	        fs["Q"] >> Q;
+	    }
+	}
+};
 
+Point3f VideoManager::triangulatePointsFromMultipleCameras(Configuration conf, int cameraOneIndex, int cameraTwoIndex,
+		Point2f firstImgPoint, Point2f secondImgPoint){
+	initQMatrix(conf,false);
+	Point3f res(0,0,0);
+	if (this->Q.rows == 4 &&this->Q.cols == 4){
+		// w tym momencie firstImgPoint i secondImgPoint to punkty ze wspolrzednymi z obrazkow
+		// z usuniętymi dystorsjami
+		double d = abs(secondImgPoint.x - firstImgPoint.x);
+		double X = firstImgPoint.x * Q.at<float>(0,0)+ Q.at<float>(0, 3);
+		double Y = firstImgPoint.y * Q.at<float>(1, 1) + Q.at<float>(1, 3);
+		double Z = Q.at<float>(2, 3);
+		double W = d * Q.at<float>(3, 2) + Q.at<float>(3, 3);
+		res.x = X/W;
+		res.y = Y/W;
+		res.z = Z/W;
+	} else {
+		cout << "Macierz reprojekcji ma złe wymiary!" << endl;
+	}
+	return res;
+};
+
+void VideoManager::test_epipolar(Configuration conf){
+	initTrackers(conf);
 
 };

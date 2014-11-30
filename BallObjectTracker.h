@@ -33,6 +33,7 @@ public:
 	BallObjectTracker(Configuration conf, String calibfn);
 	virtual ~BallObjectTracker();
 	String trackInPicture(Mat picture, String time);
+	vector<Point2f> trackInPicturePixels(Mat picture);
 	vector<String> trackInPictures(vector<std::pair<Mat,String>> pictures);
 	vector<String> trackInVideo(String filename);
 	void saveTrackToFile(vector<String> pos, String filename);

@@ -51,19 +51,17 @@ String AlvarObjectTracker::trackInPicture(Mat picture, String time){
 	IplImage image = picture;
 	IplImage *image_tmp = &image;
 	String result;
-	cout << "track1" << endl;
-	bool flip_image = (image_tmp->origin?true:false);
-	if (flip_image) {
-		cvFlip(image_tmp);
-		image_tmp->origin = !image_tmp->origin;
-	}
 	cout << "track2" << endl;
+	Mat imageUndistortedMat;
+	vector<Point2f> pointBuf;
+	undistort(picture, imageUndistortedMat, cameraMatrix, distCoeffs);
+	Mat homography = findHomography(imageUndistortedMat, Size(9,6), float(2.5), cameraMatrix, distCoeffs, pointBuf);
 	static alvar::MarkerDetector<alvar::MarkerData> marker_detector;
 	cout << "track3" << endl;
 	marker_detector.SetMarkerSize(marker_size);
 	marker_detector.Detect(image_tmp, &cam, true, true);
 	cout << "track4" << endl;
-	if(marker_detector.markers->size() > 0){
+	if(homography.data != NULL && marker_detector.markers->size() > 0){
 		cout << "Found sth" << endl;
 		int markerIndx = 0;
 		int cornerIndx = 0;
@@ -80,20 +78,16 @@ String AlvarObjectTracker::trackInPicture(Mat picture, String time){
 		orgPoint.push_back(Point2f(markerPosXX, markerPosYX));
 		orgPoint.push_back(Point2f(markerPosXY, markerPosYY));
 		vector<Point2f> udorgPoint(orgPoint);
-		vector<Point2f> rorgPoint(orgPoint);
 		cout << "try undistort" << endl;
 		undistortPoints(orgPoint, udorgPoint, cameraMatrix, distCoeffs);
-		Mat imageUndistortedMat;
-		undistort(picture, imageUndistortedMat, cameraMatrix, distCoeffs);
-		vector<Point2f> pointBuf;
-		Mat homography = findHomography(imageUndistortedMat, Size(6,4), float(100), cameraMatrix, distCoeffs, pointBuf);
+		vector<Point2f> rorgPoint(udorgPoint);
 		cout << "try perspectiveTransform" << endl;
 		perspectiveTransform( udorgPoint, rorgPoint, homography);
 		cout << "try output" << endl;
 		for (int i = 0; i < 3; ++i) {
 			result += boost::lexical_cast<std::string>(i) + " " +
-						boost::lexical_cast<std::string>(udorgPoint[i].x) + " " +
-						boost::lexical_cast<std::string>(udorgPoint[i].y) + " " +
+						boost::lexical_cast<std::string>(rorgPoint[i].x) + " " +
+						boost::lexical_cast<std::string>(rorgPoint[i].y) + " " +
 						time + "\n";
 		}
 		result += "\n";
@@ -123,19 +117,77 @@ void AlvarObjectTracker::saveTrackToFile(vector<String> pos, String filename){
 };
 
 Mat AlvarObjectTracker::findHomography(Mat img, Size pattern_size, float squareSize,
-                    Mat intrinsic_matrix, Mat distortion_coeffs, vector<Point2f> &pointBuf)
-{
-    bool found;
-    found = findChessboardCorners( img, pattern_size, pointBuf,
+                    Mat intrinsic_matrix, Mat distortion_coeffs, vector<Point2f> &pointBuf){
+    bool found = false;
+    flip( img, img, 0 );
+	found = findChessboardCorners( img, pattern_size, pointBuf,
                                    CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FAST_CHECK | CV_CALIB_CB_NORMALIZE_IMAGE);
+	if (found){
+		cout << "findChessboardCorners found sth" << endl;
+	} else {
+		cout << "findChessboardCorners didn't find anth" << endl;
+	}
     vector<Point2f> objectPoints;
+    calcBoardCornerPositions(pattern_size, squareSize, objectPoints);
     Mat homography;
+    cout << "pointBuf.size(): " << pointBuf.size() << endl;
+    cout << "objectPoints.size(): " << objectPoints.size() << endl;
     if(pointBuf.size() > 0 && pointBuf.size() == objectPoints.size())
     {
+    	cout << "try homography" << endl;
         vector<Point2f> cpointBuf(pointBuf);
         undistortPoints(pointBuf, cpointBuf, intrinsic_matrix, distortion_coeffs);//TODO spr
         homography = cv::findHomography(cpointBuf, objectPoints, homography);
-        //cout << "homography success" << endl;
+        cout << "homography success" << endl;
     }
     return homography;
+}
+
+void AlvarObjectTracker::calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point2f>& corners)
+{
+    corners.clear();
+        for( int i = 0; i < boardSize.height; ++i )
+            for( int j = 0; j < boardSize.width; ++j )
+                corners.push_back(Point2f(float( j*squareSize ), float( i*squareSize )));
+}
+
+vector<Point2f> AlvarObjectTracker::trackInPicturePixels(Mat picture){
+	vector<Point2f> res;
+	cout << "track0" << endl;
+		IplImage image = picture;
+		IplImage *image_tmp = &image;
+		String result;
+		cout << "track2" << endl;
+		Mat imageUndistortedMat;
+		vector<Point2f> pointBuf;
+		undistort(picture, imageUndistortedMat, cameraMatrix, distCoeffs);
+		static alvar::MarkerDetector<alvar::MarkerData> marker_detector;
+		cout << "track3" << endl;
+		marker_detector.SetMarkerSize(marker_size);
+		marker_detector.Detect(image_tmp, &cam, true, true);
+		cout << "track4" << endl;
+		if(marker_detector.markers->size() > 0){
+			cout << "Found sth" << endl;
+			int markerIndx = 0;
+			int cornerIndx = 0;
+			float markerPosX0 = (*(marker_detector.markers))[markerIndx].marker_corners_img[cornerIndx].x;
+			float markerPosY0 = (*(marker_detector.markers))[markerIndx].marker_corners_img[cornerIndx].y;
+			cornerIndx = 1;
+			float markerPosXX = (*(marker_detector.markers))[markerIndx].marker_corners_img[cornerIndx].x;
+			float markerPosYX = (*(marker_detector.markers))[markerIndx].marker_corners_img[cornerIndx].y;
+			cornerIndx = 2;
+			float markerPosXY = (*(marker_detector.markers))[markerIndx].marker_corners_img[cornerIndx].x;
+			float markerPosYY = (*(marker_detector.markers))[markerIndx].marker_corners_img[cornerIndx].y;
+			vector<Point2f> orgPoint;
+			orgPoint.push_back(Point2f(markerPosX0, markerPosY0));
+			orgPoint.push_back(Point2f(markerPosXX, markerPosYX));
+			orgPoint.push_back(Point2f(markerPosXY, markerPosYY));
+			vector<Point2f> udorgPoint(orgPoint);
+			cout << "try undistort" << endl;
+			undistortPoints(orgPoint, udorgPoint, cameraMatrix, distCoeffs);
+			res.push_back(Point2f(udorgPoint[0].x,udorgPoint[0].y));
+			res.push_back(Point2f(udorgPoint[1].x,udorgPoint[1].y));
+			res.push_back(Point2f(udorgPoint[2].x,udorgPoint[2].y));
+		}
+	return res;
 }

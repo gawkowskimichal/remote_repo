@@ -31,12 +31,14 @@ public:
 	AlvarObjectTracker(Configuration conf, String calibfn);
 	virtual ~AlvarObjectTracker();
 	String trackInPicture(Mat picture, String time);
+	vector<Point2f> trackInPicturePixels(Mat picture);
 	vector<String> trackInPictures(vector<std::pair<Mat,String>> pictures);
 	vector<String> trackInVideo(String filename);
 	void saveTrackToFile(vector<String> pos, String filename);
 	bool readCameraParams( String calib_file, Mat& cameraMatrix, Mat& distCoeffs );
 	Mat findHomography(Mat img, Size pattern_size, float squareSize,
             Mat intrinsic_matrix, Mat distortion_coeffs, vector<Point2f> &pointBuf);
+	void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point2f>& corners);
 };
 }
 #endif /* ALVAROBJECTTRACKER_H_ */

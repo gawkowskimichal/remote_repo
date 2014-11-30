@@ -80,3 +80,7 @@ void BallObjectTracker::saveTrackToFile(vector<String> pos, String filename){
 
 };
 
+vector<Point2f> BallObjectTracker::trackInPicturePixels(Mat picture){
+	vector<Point2f> res;
+	return res;
+}

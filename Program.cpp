@@ -81,6 +81,10 @@ void Program::test_tracking_mult_simultanous(){
 	this->man->CaptureAndTrackMultiple(this->reader->conf);
 };
 
+void Program::test_epipolar(){
+	this->man->test_epipolar(this->reader->conf);
+};
+
 int main(int argc, char *argv[]){
 	Program *p = new Program(argc,argv);
 	//p->test_Video();
