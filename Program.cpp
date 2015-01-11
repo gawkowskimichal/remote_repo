@@ -48,12 +48,27 @@ void Program::test_alvar_tracking(){
 	vector<String> pos = this->man->tracker->trackInPictures(res);
 	cout << "After tracking" << endl;
 	for (int i = 0; i < pos.size(); i++){
+		cout << i << endl;
 		cout << pos[i] << endl;
 	}
 };
 
 void Program::test_alvar_tracking_mult(){
-
+	vector<vector<std::pair<Mat,String>>> res = this->man->captureToMemoryMultiple(this->reader->conf);
+	cout <<"Liczba wektorow: " << res.size() << endl;
+	this->man->tracker = new AlvarObjectTracker(this->reader->conf, "./Debug/out_camera_data4.xml");
+	vector<String> pos = this->man->tracker->trackInPictures(res[0]);
+	for (int i = 0; i < pos.size(); i++){
+			cout << i << endl;
+			cout << pos[i] << endl;
+		}
+	delete this->man->tracker;
+	this->man->tracker = new AlvarObjectTracker(this->reader->conf, "./Debug/out_camera_dat5.xml");
+	vector<String> pos2 = this->man->tracker->trackInPictures(res[1]);
+		for (int i = 0; i < pos2.size(); i++){
+				cout << i << endl;
+				cout << pos2[i] << endl;
+			}
 };
 
 void Program::test_ball_tracking(){
@@ -95,9 +110,9 @@ int main(int argc, char *argv[]){
 //	p->test_alvar_tracking_mult();
 	//p->test_ball_tracking();
 //	p->test_ball_tracking_mult();
-	p->test_tracking_simultanous();
+	//p->test_tracking_simultanous();
 	//p->test_tracking_mult_simultanous();
-	//p->man->getCalibrationMaterial();
+	//p->man->getCalibrationMaterial(p->reader->conf,0);
 	//p->man->getCalibrationMultipleMaterial(p->reader->conf);
 	//p->man->shutdown();
 	//p->man->CaptureFrom(0);
