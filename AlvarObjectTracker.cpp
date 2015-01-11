@@ -23,6 +23,7 @@ AlvarObjectTracker::AlvarObjectTracker(Configuration conf, String calibfn) {
 	if (!data_read){
 		cout << "Calib file didn't read!"<< endl;
 	}
+	homographyFound = false;
 	//cam.SetCalib(calibfn.c_str(), width, height);
 }
 
@@ -55,12 +56,19 @@ String AlvarObjectTracker::trackInPicture(Mat picture, String time){
 	Mat imageUndistortedMat;
 	vector<Point2f> pointBuf;
 	undistort(picture, imageUndistortedMat, cameraMatrix, distCoeffs);
-	Mat homography = findHomography(imageUndistortedMat, Size(9,6), float(2.5), cameraMatrix, distCoeffs, pointBuf);
+	Mat homography;
+	if (!this->homographyFound){
+		homography = findHomography(imageUndistortedMat, Size(9,6), float(2.5), cameraMatrix, distCoeffs, pointBuf);
+		homographyInternal = homography.clone();
+	} else {
+		homography = homographyInternal.clone();
+	}
 	static alvar::MarkerDetector<alvar::MarkerData> marker_detector;
 	cout << "track3" << endl;
 	marker_detector.SetMarkerSize(marker_size);
 	marker_detector.Detect(image_tmp, &cam, true, true);
 	cout << "track4" << endl;
+	cout << "Markers: " << marker_detector.markers->size() << endl;
 	if(homography.data != NULL && marker_detector.markers->size() > 0){
 		cout << "Found sth" << endl;
 		int markerIndx = 0;

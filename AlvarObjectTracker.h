@@ -25,9 +25,11 @@ namespace TracingFramework {
 class AlvarObjectTracker : public ObjectTracker {
 public:
 	Configuration *config;
+	Mat homographyInternal;
 	alvar::Camera cam;
 	double marker_size;
 	Mat cameraMatrix, distCoeffs;
+	bool homographyFound;
 	AlvarObjectTracker(Configuration conf, String calibfn);
 	virtual ~AlvarObjectTracker();
 	String trackInPicture(Mat picture, String time);
