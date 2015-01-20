@@ -30,6 +30,37 @@ void VideoManager::TrackInVideo(String fileName){
 	tracker->trackInVideo(fileName);
 };
 
+vector<vector<Point3f>> VideoManager::TrackInMultipleTriangulate(Configuration conf, vector<vector<std::pair<Mat,string>>> pictures){
+	initTrackers(conf);
+	vector<vector<vector<Point2f>>> pixelPositions;
+	vector<vector<Point3f>> realPositions;
+	vector<string> tokens;
+	vector<string> small_tokens;
+	int numberOfFrames = pictures.at(0).size();
+	vector<Mat> frameFromCameras;
+	Mat P1 = readMat(conf,"P1");
+	Mat P2 = readMat(conf,"P2");
+	for (int c = 0; c < this->connector->CameraCounter; c++){
+		vector<vector<Point2f>> cameraVector;
+		pixelPositions.push_back(cameraVector);
+	}
+	for (int i = 0; i < numberOfFrames; i++){
+		Mat realPos;
+		for (int j = 0; j < pictures.size(); j++){
+			frameFromCameras.push_back(pictures.at(j).at(i).first);
+			pixelPositions.at(j).push_back(this->trackers.at(j)->trackInPicturePixels(pictures.at(j).at(i).first));
+		}
+		frameFromCameras.clear();
+	}
+	for (int j = 0; j < numberOfFrames; j++){
+				vector<Point3f> realPoints;
+				triangulatePoints(P1,P2,pixelPositions.at(0),pixelPositions.at(1),realPoints);
+				realPositions.push_back(realPoints);
+				realPoints.clear();
+	}
+	return realPositions;
+};
+
 void VideoManager::CaptureFrom( int i ){
 	connector->captureVideo(i);
 }
@@ -193,10 +224,20 @@ void VideoManager::TrackMultipleFromFilesTriangulate(Configuration conf){
 	bool file_ends = false;
 	int camera_index = 0;
 	int last_postion = 0;
+	int camera_count = this->connector->CameraCounter;
+	int numberOfFrames = 0;
+	Mat P1 = readMat(conf,"P1");
+	Mat P2 = readMat(conf,"P2");
 	boost::mutex::scoped_lock lock(this->connector->file_mutex);
-	vector<vector<vector<Point2f>>> real_positions;
+	vector<vector<vector<Point2f>>> pixel_positions;
+	vector<vector<Point3f>> real_positions;
 	vector<string> tokens;
 	vector<string> small_tokens;
+	vector<vector<Mat>> framesFromCameras;
+	for (int i = 0; i < camera_count; i++){
+		vector<Mat> cameraVector;
+		framesFromCameras.push_back(cameraVector);
+	}
 	string working_dir = conf.getValueByKey("pathToWorkDir");
 	string info_file = conf.getValueByKey("pathToTimestampFile");
 	ifstream info_file_str;
@@ -204,7 +245,7 @@ void VideoManager::TrackMultipleFromFilesTriangulate(Configuration conf){
 	string line;
 	for (int i = 0; i < this->connector->cameras.size(); i++){
 		vector<vector<Point2f>> camera_result;
-		real_positions.push_back(camera_result);
+		pixel_positions.push_back(camera_result);
 	}
 	while (!file_ends){
 		if(!getline(info_file_str,line)){
@@ -223,12 +264,22 @@ void VideoManager::TrackMultipleFromFilesTriangulate(Configuration conf){
 				boost::split(tokens,line,boost::is_any_of(" ")); //filename, timestamp, counter
 				boost::split(small_tokens,tokens[2],boost::is_any_of("_"));
 				camera_index = atoi(small_tokens[1].c_str());
+				if (numberOfFrames < atoi(small_tokens[0].c_str())){
+					numberOfFrames = atoi(small_tokens[0].c_str());
+				}
 				Mat picture = readImageFromFile(tokens[0]);
-				real_positions[camera_index].push_back(trackers[camera_index]->trackInPicturePixels(picture));
+				pixel_positions[camera_index].push_back(trackers[camera_index]->trackInPicturePixels(picture));
 				cout << "Tracked sth" << endl;
 			}
 		}
 		last_postion = info_file_str.tellg();
+	}
+	// get real_pos info
+	for (int j = 0; j < numberOfFrames; j++){
+					vector<Point3f> realPoints;
+					triangulatePoints(P1,P2,pixel_positions.at(0),pixel_positions.at(1),realPoints);
+					real_positions.push_back(realPoints);
+					realPoints.clear();
 	}
 };
 
@@ -281,6 +332,19 @@ void VideoManager::initQMatrix(Configuration conf, bool reinit){
 	}
 };
 
+
+Mat VideoManager::readMat(Configuration conf,string name){
+	String pathToName = conf.getValueByKey(name);
+	cv::FileStorage fs;
+	fs.open(pathToName,FileStorage::READ);
+	Mat output;
+	bool fsIsOpened = fs.isOpened();
+	if(fsIsOpened){
+		fs[name] >> output;
+	}
+	return output;
+}
+
 Point3f VideoManager::triangulatePointsFromMultipleCameras(Configuration conf, int cameraOneIndex, int cameraTwoIndex,
 		Point2f firstImgPoint, Point2f secondImgPoint){
 	initQMatrix(conf,false);
@@ -302,7 +366,7 @@ Point3f VideoManager::triangulatePointsFromMultipleCameras(Configuration conf, i
 	return res;
 };
 
-void VideoManager::test_epipolar(Configuration conf){
+void VideoManager::test_stereo_tracking(Configuration conf){
 	initTrackers(conf);
-
+	CaptureAndTriangulate(conf);
 };

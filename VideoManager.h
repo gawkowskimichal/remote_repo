@@ -32,6 +32,7 @@ public:
 
 	void initTrackers(Configuration conf);
 	void initQMatrix(Configuration conf, bool reinit);
+	Mat readMat(Configuration conf,string name);
 
 	void TrackFromFiles(Configuration conf);
 	void TrackMultipleFromFiles(Configuration conf);
@@ -44,6 +45,7 @@ public:
 	void TrackInPicture(Mat picture, String time);
 	void TrackInPictures(vector<std::pair<Mat,String>> pictures);
 	void TrackInVideo(String fileName);
+	vector<vector<Point3f>> TrackInMultipleTriangulate(Configuration conf, vector<vector<std::pair<Mat,String>>> pictures);
 
 	void CaptureFrom( int i );
 	void CaptureMultiple();
@@ -62,10 +64,9 @@ public:
 
 	vector<std::pair<Mat,String>> captureToMemory(int i, Configuration conf);
 	vector<vector<std::pair<Mat,String>>> captureToMemoryMultiple(Configuration conf);
-
 	Point3f triangulatePointsFromMultipleCameras(Configuration conf, int cameraOneIndex, int cameraTwoIndex, Point2f firstImgPoint, Point2f secondImgPoint);
 	void shutdown();
-	void test_epipolar(Configuration conf);
+	void test_stereo_tracking(Configuration conf);
 };
 }
 #endif /* VIDEOMANAGER_H_ */
