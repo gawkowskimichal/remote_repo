@@ -14,6 +14,7 @@
 #include "Configuration.h"
 #include <boost/thread.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace cv;
@@ -32,11 +33,12 @@ public:
 
 	void initTrackers(Configuration conf);
 	void initQMatrix(Configuration conf, bool reinit);
-	Mat readMat(Configuration conf,string name);
+	Mat readMat(Configuration conf,string name,Mat &output);
 
 	void TrackFromFiles(Configuration conf);
 	void TrackMultipleFromFiles(Configuration conf);
 	void TrackMultipleFromFilesTriangulate(Configuration conf);
+	void TriangulateFromFiles(Configuration conf);
 
 	void CaptureAndTrack(Configuration conf);
 	void CaptureAndTrackMultiple(Configuration conf);
@@ -67,6 +69,9 @@ public:
 	Point3f triangulatePointsFromMultipleCameras(Configuration conf, int cameraOneIndex, int cameraTwoIndex, Point2f firstImgPoint, Point2f secondImgPoint);
 	void shutdown();
 	void test_stereo_tracking(Configuration conf);
+	void test_stereo_tracking_no_capture(Configuration conf);
+
+	void getSpeedAndDirection(vector<String>);
 };
 }
 #endif /* VIDEOMANAGER_H_ */

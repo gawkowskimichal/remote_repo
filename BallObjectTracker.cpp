@@ -61,11 +61,48 @@ String BallObjectTracker::trackInPicture(Mat picture, String time){
     result += "\n";
 	return result;
 };
+
+vector<std::pair<Point2f,String>> BallObjectTracker::trackInPictureV(Mat picture, String time){
+	vector<std::pair<Point2f,String>> result;
+	Mat pic_gray;
+	cvtColor( picture, pic_gray, CV_BGR2GRAY );
+	GaussianBlur( pic_gray, pic_gray, Size(9, 9), 2, 2 );
+    vector<Vec3f> circles;
+    HoughCircles( pic_gray, circles, CV_HOUGH_GRADIENT, 1, pic_gray.rows/8, 100, 25, 0, 0 );
+    cout << "Found circles: " <<  circles.size() << endl;
+    for( size_t i = 0; i < circles.size(); i++ ){
+    	vector<Point2f> orgPoint;
+		orgPoint.push_back(Point2f(circles[i][0], circles[i][1]));
+		vector<Point2f> udorgPoint(orgPoint);
+		vector<Point2f> rorgPoint(orgPoint);
+		undistortPoints(orgPoint, udorgPoint, cameraMatrix, distCoeffs);
+		Mat homography;
+		/*homography = findHomography(orgPoint, udorgPoint, homography);
+		perspectiveTransform( udorgPoint, rorgPoint, homography);*/
+		Point2f partial;
+		partial.x = rorgPoint[i].x;
+		partial.y = rorgPoint[i].y;
+		result.push_back(std::make_pair(partial,time));
+	  }
+	return result;
+};
+
+
 vector<String> BallObjectTracker::trackInPictures(vector<std::pair<Mat,String>> pictures){
 	vector<String> result;
 	String partial;
 	for (std::vector<std::pair<Mat,String>>::iterator it = pictures.begin(); it != pictures.end(); ++it){
 		partial = trackInPicture((*it).first,(*it).second);
+		result.push_back(partial);
+	}
+	return result;
+};
+
+vector<vector<std::pair<Point2f,String>>> BallObjectTracker::trackInPicturesV(vector<std::pair<Mat,String>> pictures){
+	vector<vector<std::pair<Point2f,String>>> result;
+	vector<std::pair<Point2f,String>> partial;
+	for (std::vector<std::pair<Mat,String>>::iterator it = pictures.begin(); it != pictures.end(); ++it){
+		partial = trackInPictureV((*it).first,(*it).second);
 		result.push_back(partial);
 	}
 	return result;

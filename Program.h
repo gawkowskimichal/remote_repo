@@ -33,6 +33,7 @@ public:
 	void test_tracking_simultanous();
 	void test_tracking_mult_simultanous();
 	void test_stereo_tracking();
+	void test_stereo_tracking_no_capture();
 	virtual ~Program();
 
 };
