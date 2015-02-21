@@ -92,6 +92,10 @@ void Program::test_tracking_simultanous(){
 	this->man->CaptureAndTrack(this->reader->conf);
 };
 
+void Program::test_tracking_simultanous_speed(){
+	this->man->CaptureAndTrackSpeed(this->reader->conf);
+};
+
 void Program::test_tracking_mult_simultanous(){
 	this->man->CaptureAndTrackMultiple(this->reader->conf);
 };

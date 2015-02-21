@@ -37,7 +37,7 @@ public:
 	vector<Point2f> trackInPicturePixels(Mat picture);
 	vector<String> trackInPictures(vector<std::pair<Mat,String>> pictures);
 	vector<String> trackInVideo(String filename);
-	vector<vector<std::pair<Point2f,String>>> trackInPicturesV(vector<std::pair<Mat,String>> pictures)= 0;
+	vector<vector<std::pair<Point2f,String>>> trackInPicturesV(vector<std::pair<Mat,String>> pictures);
 	void saveTrackToFile(vector<String> pos, String filename);
 	bool readCameraParams( String calib_file, Mat& cameraMatrix, Mat& distCoeffs );
 	Mat findHomography(Mat img, Size pattern_size, float squareSize,

@@ -174,6 +174,71 @@ void VideoManager::TrackFromFiles(Configuration conf){
 	}
 };
 
+void VideoManager::TrackFromFilesSpeed(Configuration conf){
+	bool file_ends = false;
+	int last_postion = 0;
+	tracker = new AlvarObjectTracker(conf,conf.getValueByKey("calib_file_0"));
+	vector<vector<std::pair<Point2f,String>>> real_positions;
+	vector<string> tokens;
+	boost::mutex::scoped_lock lock(this->connector->file_mutex);
+	//initTrackers(conf);
+	string working_dir = conf.getValueByKey("pathToWorkDir");
+	string info_file = conf.getValueByKey("pathToTimestampFile");
+	ifstream info_file_str;
+	cout << info_file << endl;
+	info_file_str.open(info_file.c_str());
+	if (!info_file_str.is_open()){
+		cout << "File not open!" << endl;
+	}
+	string line;
+	vector<std::pair<Point2f,String>> pos;
+	vector<std::pair<Point2f,String>> first_pos;
+	string time;
+	bool first_got = false;
+	while (!file_ends){
+		if(!getline(info_file_str,line)){
+			this->connector->images_to_write.wait(lock);
+			info_file_str.close();
+			info_file_str.clear();
+			info_file_str.open(info_file.c_str());
+			info_file_str.seekg(last_postion) ;
+		}
+		if (line == "_END"){
+			file_ends = true;
+		} else {
+			if (line != ""){
+				boost::split(tokens,line,boost::is_any_of(" ")); //filename, timestamp, counter
+				time = tokens[1];
+				Mat picture = readImageFromFile(tokens[0]);
+				if (picture.data){
+					pos = tracker->trackInPictureV(readImageFromFile(tokens[0]),time);
+					real_positions.push_back(pos);
+					if (pos.size() > 0 && !first_got){
+						first_pos = pos;
+						first_got = true;
+					}
+				}
+			}
+		}
+		last_postion = info_file_str.tellg();
+	}
+	for (int i = 0; i < real_positions.size(); i++){
+			if (real_positions.at(i).size() > 0){
+				/*
+				 * predkosc wzgl pierwszego zarejestrowanego
+				 * */
+				/*
+				 * predkosc wzgledem poprzedniego
+				 * */
+			}
+	}
+	/*for (int i = 0; i < real_positions.size(); i++){
+		cout << real_positions[i] << endl;
+	}*/
+};
+
+
+
 void VideoManager::TrackMultipleFromFiles(Configuration conf){
 	initTrackers(conf);
 	bool file_ends = false;
@@ -331,10 +396,22 @@ void VideoManager::TrackMultipleFromFilesTriangulate(Configuration conf){
 
 void VideoManager::CaptureAndTrack(Configuration conf){
 	boost::thread_group group;
+	cout << "Start capture!" << endl;
+	capturing_thread = boost::thread(&VideoManager::CaptureToFiles, this, conf);
+	cout << "Start tracking!" << endl;
+	tracking_thread = boost::thread(&VideoManager::TrackFromFiles, this, conf);
+	group.add_thread(&capturing_thread);
+	group.add_thread(&tracking_thread);
+	group.join_all();
+	cout << "End all!" << endl;
+};
+
+void VideoManager::CaptureAndTrackSpeed(Configuration conf){
+	boost::thread_group group;
 	//cout << "Start capture!" << endl;
 	//capturing_thread = boost::thread(&VideoManager::CaptureToFiles, this, conf);
 	cout << "Start tracking!" << endl;
-	tracking_thread = boost::thread(&VideoManager::TrackFromFiles, this, conf);
+	tracking_thread = boost::thread(&VideoManager::TrackFromFilesSpeed, this, conf);
 	//group.add_thread(&capturing_thread);
 	group.add_thread(&tracking_thread);
 	group.join_all();

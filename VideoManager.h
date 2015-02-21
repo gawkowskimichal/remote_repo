@@ -36,11 +36,13 @@ public:
 	Mat readMat(Configuration conf,string name,Mat &output);
 
 	void TrackFromFiles(Configuration conf);
+	void TrackFromFilesSpeed(Configuration conf);
 	void TrackMultipleFromFiles(Configuration conf);
 	void TrackMultipleFromFilesTriangulate(Configuration conf);
 	void TriangulateFromFiles(Configuration conf);
 
 	void CaptureAndTrack(Configuration conf);
+	void CaptureAndTrackSpeed(Configuration conf);
 	void CaptureAndTrackMultiple(Configuration conf);
 	void CaptureAndTriangulate(Configuration conf);
 

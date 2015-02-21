@@ -31,6 +31,7 @@ public:
 	void test_ball_tracking();
 	void test_ball_tracking_mult();
 	void test_tracking_simultanous();
+	void test_tracking_simultanous_speed();
 	void test_tracking_mult_simultanous();
 	void test_stereo_tracking();
 	void test_stereo_tracking_no_capture();
