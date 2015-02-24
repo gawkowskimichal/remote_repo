@@ -118,10 +118,11 @@ int main(int argc, char *argv[]){
 //	p->test_alvar_tracking_mult();
 	//p->test_ball_tracking();
 //	p->test_ball_tracking_mult();
-	p->test_tracking_simultanous();
+	//p->test_tracking_simultanous();
+	//p->test_tracking_simultanous_speed();
 	//p->test_tracking_mult_simultanous();
 	//p->test_stereo_tracking();
-	//p->test_stereo_tracking_no_capture();
+	p->test_stereo_tracking_no_capture();
 	//p->man->getCalibrationMaterial(p->reader->conf,0);
 	//p->man->getCalibrationMultipleMaterial(p->reader->conf);
 	//p->man->shutdown();

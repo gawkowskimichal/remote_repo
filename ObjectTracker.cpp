@@ -7,6 +7,7 @@
 
 #include "ObjectTracker.h"
 using namespace TracingFramework;
+using namespace std;
 
 ObjectTracker::ObjectTracker() {
 	// TODO Auto-generated constructor stub
@@ -34,7 +35,8 @@ time_t ObjectTracker::getTimeFromString(String time_string){
 double ObjectTracker::getTimeDiff(String start, String stop){
 	time_t start_time = getTimeFromString(start);
 	time_t end_time = getTimeFromString(stop);
-	return difftime(end_time, start_time);
+	end_time = end_time - 3600;
+	return end_time - start_time;
 };
 
 Point3f ObjectTracker::getSpeed(Point3f start_pos, String start_time, Point3f stop_pos, String stop_time){

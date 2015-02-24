@@ -31,6 +31,7 @@ public:
 	Mat cameraMatrix, distCoeffs;
 	bool homographyFound;
 	AlvarObjectTracker(Configuration conf, String calibfn);
+	AlvarObjectTracker(Configuration conf, String M, String D);
 	virtual ~AlvarObjectTracker();
 	String trackInPicture(Mat picture, String time);
 	vector<std::pair<Point2f,String>> trackInPictureV(Mat picture, String time);
@@ -40,6 +41,7 @@ public:
 	vector<vector<std::pair<Point2f,String>>> trackInPicturesV(vector<std::pair<Mat,String>> pictures);
 	void saveTrackToFile(vector<String> pos, String filename);
 	bool readCameraParams( String calib_file, Mat& cameraMatrix, Mat& distCoeffs );
+	bool readCameraParams( String M, String D, Mat& cameraMatrix, Mat& distCoeffs );
 	Mat findHomography(Mat img, Size pattern_size, float squareSize,
             Mat intrinsic_matrix, Mat distortion_coeffs, vector<Point2f> &pointBuf);
 	void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point2f>& corners);

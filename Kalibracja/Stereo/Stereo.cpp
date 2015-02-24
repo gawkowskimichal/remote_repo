@@ -42,6 +42,7 @@
 #include <ctype.h>
 
 using namespace std;
+using namespace cv;
 
 //
 // Given a list of chessboard images, the number of corners (nx, ny)
@@ -178,18 +179,38 @@ StereoCalib(const char* imageList, int nx, int ny, int useUncalibrated, float _s
     CvMat _imagePoints1 = cvMat(1, N, CV_32FC2, &points[0][0] );
     CvMat _imagePoints2 = cvMat(1, N, CV_32FC2, &points[1][0] );
     CvMat _npoints = cvMat(1, npoints.size(), CV_32S, &npoints[0] );
-    cvSetIdentity(&_M1);
+    /*cvSetIdentity(&_M1);
     cvSetIdentity(&_M2);
     cvZero(&_D1);
-    cvZero(&_D2);
-
+    cvZero(&_D2);*/
+    Mat MatM1,MatM2,MatD1,MatD2;
+    cv::FileStorage fs, fs2;
+    fs.open("out_camera_data4.xml",FileStorage::READ);
+    fs2.open("out_camera_data5.xml",FileStorage::READ);
+    bool fsIsOpened = fs.isOpened();
+    if(fsIsOpened){
+    		fs["Camera_Matrix"] >> MatM1;
+    		fs["Distortion_Coefficients"] >> MatD1;
+    		//output = (double)fs[name];
+    }
+    bool fsIsOpened2 = fs2.isOpened();
+    if(fsIsOpened2){
+    		fs["Camera_Matrix"] >> MatM2;
+    		fs["Distortion_Coefficients"] >> MatD2;
+    		//output = (double)fs[name];
+    }
+    _M1 = MatM1;
+    _M2 = MatM2;
+    _D1 = MatD1;
+    _D2 = MatD2;
 // CALIBRATE THE STEREO CAMERAS
     printf("Running stereo calibration ...");
     fflush(stdout);
     cvStereoCalibrate( &_objectPoints, &_imagePoints1,
         &_imagePoints2, &_npoints,
         &_M1, &_D1, &_M2, &_D2,
-        imageSize, &_R, &_T, &_E, &_F);
+        imageSize, &_R, &_T, &_E, &_F,cvTermCriteria(CV_TERMCRIT_ITER+
+    CV_TERMCRIT_EPS, 1000, 1e-12),CV_CALIB_FIX_INTRINSIC);
     printf(" done\n");
 // CALIBRATION QUALITY CHECK
 // because the output fundamental matrix implicitly
@@ -254,7 +275,7 @@ StereoCalib(const char* imageList, int nx, int ny, int useUncalibrated, float _s
             cvStereoRectify( &_M1, &_M2, &_D1, &_D2, imageSize,
                 &_R, &_T,
                 &_R1, &_R2, &_P1, &_P2, &_Q,
-                0/*CV_CALIB_ZERO_DISPARITY*/ );
+                0/*CV_CALIB_ZERO_DISPARITY */);
             isVerticalStereo = fabs(P2[1][3]) > fabs(P2[0][3]);
     //Precompute maps for cvRemap()
             cvInitUndistortRectifyMap(&_M1,&_D1,&_R1,&_P1,mx1,my1);
@@ -388,6 +409,7 @@ StereoCalib(const char* imageList, int nx, int ny, int useUncalibrated, float _s
         cvReleaseMat( &disp );
     }
 }
+
 int main(int argc, char *argv[])
 {
     int nx, ny;

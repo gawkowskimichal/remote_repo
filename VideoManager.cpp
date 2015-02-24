@@ -108,13 +108,17 @@ void VideoManager::CaptureMultipleToFiles(Configuration conf){
 void VideoManager::initTrackers(Configuration conf){
 	string marker_type = conf.getValueByKey("marker_type");
 	vector<string> calib_files;
+	vector<string> M_files;
+	vector<string> D_files;
 	int cameraCount = atoi(conf.getValueByKey("maxCameras").c_str());
 	for (int i = 0; i < cameraCount; i++){
 		calib_files.push_back(conf.getValueByKey("calib_file_"+boost::lexical_cast<std::string>(i)));
+		M_files.push_back(conf.getValueByKey("M"+boost::lexical_cast<std::string>(i+1)));
+		D_files.push_back(conf.getValueByKey("D"+boost::lexical_cast<std::string>(i+1)));
 	}
 	if (marker_type == "alvar"){
 		for (int i = 0; i < cameraCount; i++){
-			trackers.push_back(new AlvarObjectTracker(conf,calib_files[i]));
+			trackers.push_back(new AlvarObjectTracker(conf,M_files[i],D_files[i]));
 		}
 	} else if (marker_type == "ball"){
 		for (int i = 0; i < cameraCount; i++){
@@ -193,6 +197,7 @@ void VideoManager::TrackFromFilesSpeed(Configuration conf){
 	string line;
 	vector<std::pair<Point2f,String>> pos;
 	vector<std::pair<Point2f,String>> first_pos;
+	vector<std::pair<Point2f,String>> last_pos;
 	string time;
 	bool first_got = false;
 	while (!file_ends){
@@ -222,14 +227,32 @@ void VideoManager::TrackFromFilesSpeed(Configuration conf){
 		}
 		last_postion = info_file_str.tellg();
 	}
+	Point3f start_point(first_pos.at(1).first);
+	Point3f current;
+	Point3f last;
+	last = start_point;
+	String last_timestamp = first_pos.at(1).second;
+	cout << "first: " << start_point.x << " " << start_point.y << " " << start_point.z << " " << first_pos.at(1).second <<  endl;
 	for (int i = 0; i < real_positions.size(); i++){
 			if (real_positions.at(i).size() > 0){
 				/*
 				 * predkosc wzgl pierwszego zarejestrowanego
 				 * */
+				current.x = real_positions.at(i).at(1).first.x;
+				current.y = real_positions.at(i).at(1).first.y;
+				current.z = 0;
+				cout << "current: " << current.x << " " << current.y << " " << current.z << " " << real_positions.at(i).at(1).second << endl;
+				cout << "Od poczatku: " << tracker->getSpeed(start_point,first_pos.at(1).second,current,real_positions.at(i).at(1).second) << endl;
 				/*
 				 * predkosc wzgledem poprzedniego
 				 * */
+				if (last_timestamp != real_positions.at(i).at(1).second){
+					cout << "Od ostatniego: " <<tracker->getSpeed(last,last_timestamp,current,real_positions.at(i).at(1).second) << endl;
+					last.x = current.x;
+					last.y = current.y;
+					last.z = current.z;
+					last_timestamp = real_positions.at(i).at(1).second;
+				}
 			}
 	}
 	/*for (int i = 0; i < real_positions.size(); i++){
@@ -297,9 +320,15 @@ void VideoManager::TrackMultipleFromFilesTriangulate(Configuration conf){
 	int camera_count = 2;//this->connector->CameraCounter;
 	int numberOfFrames = 0;
 	int maxNumOfTrackedObj = 0;
-	Mat P1,P2;
+	Mat P1,P2,mx1,mx2,my1,my2;
 	readMat(conf,"P1",P1);
 	readMat(conf,"P2",P2);
+	readMat(conf,"mx1",mx1);
+	readMat(conf,"mx2",mx2);
+	readMat(conf,"my1",my1);
+	readMat(conf,"mx2",my2);
+	P1.convertTo(P1,CV_64FC1);
+	P2.convertTo(P2,CV_64FC1);
 	boost::mutex::scoped_lock lock(this->connector->file_mutex);
 	vector<vector<vector<Point2f>>> pixel_positions;
 	vector<vector<Point3f>> real_positions;
@@ -340,6 +369,15 @@ void VideoManager::TrackMultipleFromFilesTriangulate(Configuration conf){
 					numberOfFrames = atoi(small_tokens[0].c_str());
 				}
 				Mat picture = readImageFromFile(tokens[0]);
+				/*
+				 * remap
+				 **/
+				Mat undistorted;
+				if (camera_index == 0){
+					remap(picture,undistorted,mx1,my1,CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+				} else if (camera_index == 1){
+					remap(picture,undistorted,mx2,my2,CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+				}
 				if (picture.data){
 					vector<Point2f> tracked = trackers[camera_index]->trackInPicturePixels(picture);
 					if (tracked.size() > 0){
@@ -369,28 +407,57 @@ void VideoManager::TrackMultipleFromFilesTriangulate(Configuration conf){
 			vector<Point2f> rightPoints = pixel_positions.at(1).at(j);
 			Mat matl = Mat(2,1,CV_32FC1,(float*)pixel_positions.at(0).at(j).data());
 			Mat matr = Mat(2,1,CV_32FC1,(float*)pixel_positions.at(1).at(j).data());
-			Mat matout = Mat(4,1,CV_32FC1);
-			triangulatePoints(P1,P2,matl,matr,matout);
+			Mat matout = Mat(4,1,CV_64FC1);
+			matl.convertTo(matl,CV_64FC1);
+			matr.convertTo(matr,CV_64FC1);
+			cout << "Metoda 1: " << endl;
 			for (int z = 0; z < maxNumOfTrackedObj; z++){
 				realPoints[z] = triangulatePointsFromMultipleCameras(conf,0,1,leftPoints[z],rightPoints[z]);
 				cout<< "X: " << realPoints[z].x << "Y: " << realPoints[z].y << "Z: " << realPoints[z].z<<endl;
 
 			}
-			float *coord = (float*)(matout.data);
-			float X_W = coord[0];
-			float Y_W = coord[1];
-			float Z_W = coord[2];
-			float W = coord[3];
-			float X = X_W / W;
-			float Y = Y_W / W;
-			float Z = Z_W / W;
-			cout << X <<"  "<< Y <<"  "<< Z << endl;
+			cout << "Triangulate points: " << endl;
+			triangulatePoints(P1,P2,matl,matr,matout);
+			//double *coord = (double*)(matout.data);
+			double X_W = matout.at<double>(0,0);//coord[0];
+			double Y_W = matout.at<double>(1,0);//coord[1];
+			double Z_W = matout.at<double>(2,0);//coord[2];
+			double W = matout.at<double>(3,0);//coord[3];
+			double X = X_W / W;
+			double Y = Y_W / W;
+			double Z = Z_W / W;
+			cout << "X: " << X <<" Y:  "<< Y <<" Z:  "<< Z << " W: " << W <<  endl;
 			cout << matout << endl;
 			cout << endl;
+			/*
+			cout << "Spagetti"  << endl;
+			for (int z = 0; z < maxNumOfTrackedObj; z++){
+				Mat resp = triangulate_Linear_LS(P1, P2, matl, matr);
+				cout << resp << endl;
+			}
+			*/
+			/*cout << "Metoda Hartman && Zisserman: " << endl;
+			Mat m1,m2,invM1,invM2;
+			readMat(conf,"M1",m1);
+			readMat(conf,"M2",m1);
+			invert(m1,invM1);
+			invert(m2,invM2);
+			for (int z = 0; z < maxNumOfTrackedObj; z++){
+				Point3d left(leftPoints[z].x,leftPoints[z].y,1.0);
+				Point3d right(leftPoints[z].x,leftPoints[z].y,1.0);
+				Mat mm1 = invM1 * Mat(left);
+				Mat mm2 = invM2 * Mat(right);
+				left = mm1.at<Point3d>(0);
+				right = mm2.at<Point3d>(0);
+				Mat resp = LinearLSTriangulation(left, P1, right, P2);
+				cout << resp << endl;
+			}*/
 			real_positions.push_back(realPoints);
 			realPoints.clear();
 		}
 	}
+	cout << "P1: " << P1 << endl;
+	cout << "P2: " << P2 << endl;
 };
 
 
@@ -509,3 +576,58 @@ void VideoManager::test_stereo_tracking_no_capture(Configuration conf){
 	initTrackers(conf);
 	TriangulateFromFiles(conf);
 }
+
+/*
+/**
+ From "Triangulation", Hartley, R.I. and Sturm, P., Computer vision and image understanding, 1997
+
+Mat VideoManager::LinearLSTriangulation(Point3d u,       //homogenous image point (u,v,1)
+                   Matx34d P,       //camera 1 matrix
+                   Point3d u1,      //homogenous image point in 2nd camera
+                   Matx34d P1       //camera 2 matrix
+                                   )
+{
+    //build matrix A for homogenous equation system Ax = 0
+    //assume X = (x,y,z,1), for Linear-LS method
+    //which turns it into a AX = B system, where A is 4x3, X is 3x1 and B is 4x1
+    Matx43d A(u.x*P(2,0)-P(0,0),    u.x*P(2,1)-P(0,1),      u.x*P(2,2)-P(0,2),
+          u.y*P(2,0)-P(1,0),    u.y*P(2,1)-P(1,1),      u.y*P(2,2)-P(1,2),
+          u1.x*P1(2,0)-P1(0,0), u1.x*P1(2,1)-P1(0,1),   u1.x*P1(2,2)-P1(0,2),
+          u1.y*P1(2,0)-P1(1,0), u1.y*P1(2,1)-P1(1,1),   u1.y*P1(2,2)-P1(1,2)
+              );
+    Matx41d B(-(u.x*P(2,3)    -P(0,3)),
+            -(u.y*P(2,3)  -P(1,3)),
+            -(u1.x*P1(2,3)    -P1(0,3)),
+            -(u1.y*P1(2,3)    -P1(1,3)));
+    Mat X;
+    solve(A,B,X,DECOMP_SVD);
+
+    return X;
+}
+
+*/
+Mat VideoManager::triangulate_Linear_LS(Mat mat_P_l, Mat mat_P_r, Mat warped_back_l, Mat warped_back_r)
+{
+    Mat A(4,3,CV_64FC1), b(4,1,CV_64FC1), X(3,1,CV_64FC1), X_homogeneous(4,1,CV_64FC1), W(1,1,CV_64FC1);
+    W.at<double>(0,0) = 1.0;
+    A.at<double>(0,0) = (warped_back_l.at<double>(0,0)/warped_back_l.at<double>(2,0))*mat_P_l.at<double>(2,0) - mat_P_l.at<double>(0,0);
+    A.at<double>(0,1) = (warped_back_l.at<double>(0,0)/warped_back_l.at<double>(2,0))*mat_P_l.at<double>(2,1) - mat_P_l.at<double>(0,1);
+    A.at<double>(0,2) = (warped_back_l.at<double>(0,0)/warped_back_l.at<double>(2,0))*mat_P_l.at<double>(2,2) - mat_P_l.at<double>(0,2);
+    A.at<double>(1,0) = (warped_back_l.at<double>(1,0)/warped_back_l.at<double>(2,0))*mat_P_l.at<double>(2,0) - mat_P_l.at<double>(1,0);
+    A.at<double>(1,1) = (warped_back_l.at<double>(1,0)/warped_back_l.at<double>(2,0))*mat_P_l.at<double>(2,1) - mat_P_l.at<double>(1,1);
+    A.at<double>(1,2) = (warped_back_l.at<double>(1,0)/warped_back_l.at<double>(2,0))*mat_P_l.at<double>(2,2) - mat_P_l.at<double>(1,2);
+    A.at<double>(2,0) = (warped_back_r.at<double>(0,0)/warped_back_r.at<double>(2,0))*mat_P_r.at<double>(2,0) - mat_P_r.at<double>(0,0);
+    A.at<double>(2,1) = (warped_back_r.at<double>(0,0)/warped_back_r.at<double>(2,0))*mat_P_r.at<double>(2,1) - mat_P_r.at<double>(0,1);
+    A.at<double>(2,2) = (warped_back_r.at<double>(0,0)/warped_back_r.at<double>(2,0))*mat_P_r.at<double>(2,2) - mat_P_r.at<double>(0,2);
+    A.at<double>(3,0) = (warped_back_r.at<double>(1,0)/warped_back_r.at<double>(2,0))*mat_P_r.at<double>(2,0) - mat_P_r.at<double>(1,0);
+    A.at<double>(3,1) = (warped_back_r.at<double>(1,0)/warped_back_r.at<double>(2,0))*mat_P_r.at<double>(2,1) - mat_P_r.at<double>(1,1);
+    A.at<double>(3,2) = (warped_back_r.at<double>(1,0)/warped_back_r.at<double>(2,0))*mat_P_r.at<double>(2,2) - mat_P_r.at<double>(1,2);
+    b.at<double>(0,0) = -((warped_back_l.at<double>(0,0)/warped_back_l.at<double>(2,0))*mat_P_l.at<double>(2,3) - mat_P_l.at<double>(0,3));
+    b.at<double>(1,0) = -((warped_back_l.at<double>(1,0)/warped_back_l.at<double>(2,0))*mat_P_l.at<double>(2,3) - mat_P_l.at<double>(1,3));
+    b.at<double>(2,0) = -((warped_back_r.at<double>(0,0)/warped_back_r.at<double>(2,0))*mat_P_r.at<double>(2,3) - mat_P_r.at<double>(0,3));
+    b.at<double>(3,0) = -((warped_back_r.at<double>(1,0)/warped_back_r.at<double>(2,0))*mat_P_r.at<double>(2,3) - mat_P_r.at<double>(1,3));
+    solve(A,b,X,DECOMP_SVD);
+    vconcat(X,W,X_homogeneous);
+    return X_homogeneous;
+}
+

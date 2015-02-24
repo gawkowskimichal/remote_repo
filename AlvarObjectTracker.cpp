@@ -27,6 +27,19 @@ AlvarObjectTracker::AlvarObjectTracker(Configuration conf, String calibfn) {
 	//cam.SetCalib(calibfn.c_str(), width, height);
 }
 
+AlvarObjectTracker::AlvarObjectTracker(Configuration conf, String M, String D){
+	cout << "AlvarObjectTracker tracker"<< endl;
+		config = &conf;
+		marker_size = atof(config->getValueByKey("markerSize").c_str());
+		double width = atof(config->getValueByKey("resolution_y").c_str());
+		double height = atof(config->getValueByKey("resolution_x").c_str());
+		cout << "readCameraParams"<< endl;
+		bool data_read = readCameraParams(M, D, cameraMatrix, distCoeffs);
+		if (!data_read){
+			cout << "Calib file didn't read!"<< endl;
+		}
+		homographyFound = false;
+}
 
 bool AlvarObjectTracker::readCameraParams( string calib_file, Mat& cameraMatrix, Mat& distCoeffs ) {
     cv::FileStorage fs;
@@ -40,6 +53,24 @@ bool AlvarObjectTracker::readCameraParams( string calib_file, Mat& cameraMatrix,
         fs["Distortion_Coefficients"] >> distCoeffs;
     }
     return fsIsOpened;
+}
+
+bool AlvarObjectTracker::readCameraParams( string M, string D, Mat& cameraMatrix, Mat& distCoeffs ) {
+    cv::FileStorage fsM, fsD;
+    cout << "fs" << endl;
+    fsM.open( M, FileStorage::READ );
+    fsD.open( D, FileStorage::READ );
+    cout << "fs open" << endl;
+    bool fsMIsOpened = fsM.isOpened();
+    bool fsDIsOpened = fsD.isOpened();
+    if(fsMIsOpened)
+    {
+        fsM["Camera_Matrix"] >> cameraMatrix;
+    }
+    if (fsDIsOpened){
+    	fsD["Distortion_Coefficients"] >> distCoeffs;
+    }
+    return fsDIsOpened && fsMIsOpened;
 }
 
 
@@ -237,7 +268,7 @@ vector<Point2f> AlvarObjectTracker::trackInPicturePixels(Mat picture){
 		cout << "track2" << endl;
 		Mat imageUndistortedMat;
 		vector<Point2f> pointBuf;
-		undistort(picture, imageUndistortedMat, cameraMatrix, distCoeffs);
+		//undistort(picture, imageUndistortedMat, cameraMatrix, distCoeffs);
 		static alvar::MarkerDetector<alvar::MarkerData> marker_detector;
 		cout << "track3" << endl;
 		marker_detector.SetMarkerSize(marker_size);
@@ -261,13 +292,13 @@ vector<Point2f> AlvarObjectTracker::trackInPicturePixels(Mat picture){
 			orgPoint.push_back(Point2f(markerPosXY, markerPosYY));
 			vector<Point2f> udorgPoint(orgPoint.size());
 			cout << "try undistort" << endl;
-			undistortPoints(orgPoint, udorgPoint, cameraMatrix, distCoeffs);
+			/*undistortPoints(orgPoint, udorgPoint, cameraMatrix, distCoeffs);
 			res.push_back(Point2f(udorgPoint[0].x,udorgPoint[0].y));
 			res.push_back(Point2f(udorgPoint[1].x,udorgPoint[1].y));
-			res.push_back(Point2f(udorgPoint[2].x,udorgPoint[2].y));
-			/*res.push_back(Point2f(orgPoint[0].x,orgPoint[0].y));
+			res.push_back(Point2f(udorgPoint[2].x,udorgPoint[2].y));*/
+			res.push_back(Point2f(orgPoint[0].x,orgPoint[0].y));
 			res.push_back(Point2f(orgPoint[1].x,orgPoint[1].y));
-			res.push_back(Point2f(orgPoint[2].x,orgPoint[2].y));*/
+			res.push_back(Point2f(orgPoint[2].x,orgPoint[2].y));
 		}
 	return res;
 }

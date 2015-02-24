@@ -74,6 +74,13 @@ public:
 	void test_stereo_tracking_no_capture(Configuration conf);
 
 	void getSpeedAndDirection(vector<String>);
+
+	/*Mat LinearLSTriangulation(Point3d u,       //homogenous image point (u,v,1)
+	                   Matx34d P,       //camera 1 matrix
+	                   Point3d u1,      //homogenous image point in 2nd camera
+	                   Matx34d P1       //camera 2 matrix
+	                                   );*/
+	Mat triangulate_Linear_LS(Mat mat_P_l, Mat mat_P_r, Mat warped_back_l, Mat warped_back_r);
 };
 }
 #endif /* VIDEOMANAGER_H_ */
