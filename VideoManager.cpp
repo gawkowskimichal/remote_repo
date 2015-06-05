@@ -364,8 +364,10 @@ void VideoManager::TriangulateFromFilesSpeed(Configuration conf){
 	for (int j = 0; j < numberOfFrames; j++){
 		if (pixel_positions.at(0).at(j).size() > 0 && pixel_positions.at(1).at(j).size() > 0){
 			vector<pair<Point3f,String>> realPoints(maxNumOfTrackedObj);
-			vector<pair<Point2f,String>> leftPoints = pixel_positions.at(0).at(j);
-			vector<pair<Point2f,String>> rightPoints = pixel_positions.at(1).at(j);
+			/*vector<pair<Point2f,String>> leftPoints = pixel_positions.at(0).at(j);
+			vector<pair<Point2f,String>> rightPoints = pixel_positions.at(1).at(j);*/
+			vector<pair<Point2f,String>> leftPoints = pixel_positions.at(1).at(j);
+			vector<pair<Point2f,String>> rightPoints = pixel_positions.at(0).at(j);
 			vector<Point2f> justPointsLeft;
 			vector<Point2f> justPointsRight;
 			for (int y = 0; y < realPoints.size(); y++){
