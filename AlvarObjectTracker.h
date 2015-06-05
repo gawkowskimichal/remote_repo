@@ -36,6 +36,7 @@ public:
 	String trackInPicture(Mat picture, String time);
 	vector<std::pair<Point2f,String>> trackInPictureV(Mat picture, String time);
 	vector<Point2f> trackInPicturePixels(Mat picture);
+	vector<pair<Point2f,String>> trackInPicturePixelsV(Mat picture, String time);
 	vector<String> trackInPictures(vector<std::pair<Mat,String>> pictures);
 	vector<String> trackInVideo(String filename);
 	vector<vector<std::pair<Point2f,String>>> trackInPicturesV(vector<std::pair<Mat,String>> pictures);

@@ -302,3 +302,12 @@ vector<Point2f> AlvarObjectTracker::trackInPicturePixels(Mat picture){
 		}
 	return res;
 }
+
+vector<pair<Point2f,String>> AlvarObjectTracker::trackInPicturePixelsV(Mat picture, String time){
+	vector<Point2f> res_no_time = trackInPicturePixels(picture);
+	vector<pair<Point2f,String>> res;
+	for (int i = 0; i< res_no_time.size(); i++){
+		res.push_back(make_pair(res_no_time[i],time));
+	}
+	return res;
+}

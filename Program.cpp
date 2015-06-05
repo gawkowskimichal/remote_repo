@@ -107,6 +107,11 @@ void Program::test_stereo_tracking(){
 void Program::test_stereo_tracking_no_capture(){
 	this->man->test_stereo_tracking_no_capture(this->reader->conf);
 };
+void Program::test_stereo_tracking_no_capture_speed(){
+	this->man->test_stereo_tracking_no_capture_speed(this->reader->conf);
+};
+
+
 
 int main(int argc, char *argv[]){
 	Program *p = new Program(argc,argv);
@@ -122,7 +127,8 @@ int main(int argc, char *argv[]){
 	//p->test_tracking_simultanous_speed();
 	//p->test_tracking_mult_simultanous();
 	//p->test_stereo_tracking();
-	p->test_stereo_tracking_no_capture();
+	//p->test_stereo_tracking_no_capture();
+	p->test_stereo_tracking_no_capture_speed();
 	//p->man->getCalibrationMaterial(p->reader->conf,0);
 	//p->man->getCalibrationMultipleMaterial(p->reader->conf);
 	//p->man->shutdown();

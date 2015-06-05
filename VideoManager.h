@@ -25,6 +25,7 @@ public:
 	ObjectTracker *tracker;
 	vector<ObjectTracker*> trackers;
 	Mat Q;
+	KalmanFilter eKF;
 	boost::thread capturing_thread;
 	boost::thread tracking_thread;
 	int ReaderCounter;
@@ -40,6 +41,7 @@ public:
 	void TrackMultipleFromFiles(Configuration conf);
 	void TrackMultipleFromFilesTriangulate(Configuration conf);
 	void TriangulateFromFiles(Configuration conf);
+	void TriangulateFromFilesSpeed(Configuration conf);
 
 	void CaptureAndTrack(Configuration conf);
 	void CaptureAndTrackSpeed(Configuration conf);
@@ -72,6 +74,7 @@ public:
 	void shutdown();
 	void test_stereo_tracking(Configuration conf);
 	void test_stereo_tracking_no_capture(Configuration conf);
+	void test_stereo_tracking_no_capture_speed(Configuration conf);
 
 	void getSpeedAndDirection(vector<String>);
 

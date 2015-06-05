@@ -12,6 +12,7 @@ VideoManager::VideoManager(Configuration conf) {
 	connector = new VideoConnector();
 	connector->initCameras(conf);
 	ReaderCounter = 0;
+	eKF.init(6,3,0,CV_32F);
 }
 
 VideoManager::~VideoManager() {
@@ -134,7 +135,12 @@ Mat VideoManager::readImageFromFile(string path){
 void VideoManager::TrackFromFiles(Configuration conf){
 	bool file_ends = false;
 	int last_postion = 0;
-	tracker = new AlvarObjectTracker(conf,conf.getValueByKey("calib_file_0"));
+	string tracker_type = conf.getValueByKey("marker_type");
+	if (tracker_type == "alvar"){
+		tracker = new AlvarObjectTracker(conf,conf.getValueByKey("calib_file_0"));
+	} else if (tracker_type == "ball"){
+		tracker = new BallObjectTracker(conf,conf.getValueByKey("calib_file_0"));
+	}
 	vector<std::string> real_positions;
 	vector<string> tokens;
 	boost::mutex::scoped_lock lock(this->connector->file_mutex);
@@ -260,6 +266,176 @@ void VideoManager::TrackFromFilesSpeed(Configuration conf){
 	}*/
 };
 
+void VideoManager::TriangulateFromFilesSpeed(Configuration conf){
+	initTrackers(conf);
+	bool file_ends = false;
+	int camera_index = 0;
+	int last_postion = 0;
+	int camera_count = 2;//this->connector->CameraCounter;
+	int numberOfFrames = 0;
+	int maxNumOfTrackedObj = 0;
+	Mat P1,P2,mx1,mx2,my1,my2;
+	readMat(conf,"P1",P1);
+	readMat(conf,"P2",P2);
+	readMat(conf,"mx1",mx1);
+	readMat(conf,"mx2",mx2);
+	readMat(conf,"my1",my1);
+	readMat(conf,"mx2",my2);
+	P1.convertTo(P1,CV_64FC1);
+	P2.convertTo(P2,CV_64FC1);
+	boost::mutex::scoped_lock lock(this->connector->file_mutex);
+	vector<vector<vector<pair<Point2f,String>>>> pixel_positions;
+	vector<vector<pair<Point3f,String>>> real_positions;
+	vector<string> tokens;
+	vector<string> small_tokens;
+	vector<vector<Mat>> framesFromCameras;
+	for (int i = 0; i < camera_count; i++){
+		vector<Mat> cameraVector;
+		framesFromCameras.push_back(cameraVector);
+	}
+	string working_dir = conf.getValueByKey("pathToWorkDir");
+	string info_file = conf.getValueByKey("pathToTimestampFile");
+	ifstream info_file_str;
+	info_file_str.open(info_file.c_str());
+	string line;
+	for (int i = 0; i < camera_count; i++){
+		vector<vector<pair<Point2f,String>>> camera_result;
+		pixel_positions.push_back(camera_result);
+	}
+	while (!file_ends){
+		if(!getline(info_file_str,line)){
+			this->connector->images_to_write.wait(lock);
+			info_file_str.close();
+			info_file_str.clear();
+			info_file_str.open(info_file.c_str());
+			info_file_str.seekg(last_postion) ;
+			cout << "Wall hit" << endl;
+		}
+		if (line == "_END"){
+			file_ends = true;
+			cout << "End of file found" << endl;
+		} else {
+			if (line != ""){
+				boost::split(tokens,line,boost::is_any_of(" ")); //filename, timestamp, counter
+				boost::split(small_tokens,tokens[2],boost::is_any_of("_"));
+				camera_index = atoi(small_tokens[1].c_str());
+				if (numberOfFrames < atoi(small_tokens[0].c_str())){
+					numberOfFrames = atoi(small_tokens[0].c_str());
+				}
+				Mat picture = readImageFromFile(tokens[0]);
+				/*
+				 * remap
+				 **/
+				Mat undistorted;
+				if (camera_index == 0){
+					undistorted = picture.clone();
+					//remap(picture,undistorted,mx1,my1,CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+				} else if (camera_index == 1){
+					//undistorted = picture.clone();
+					remap(picture,undistorted,mx1,my1,CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+				}
+				//if (picture.data){
+				if (undistorted.data){
+					vector<pair<Point2f,String>> tracked = trackers[camera_index]->trackInPicturePixelsV(undistorted,tokens[1]);
+					//vector<pair<Point2f,String>> tracked = trackers[camera_index]->trackInPicturePixelsV(picture,tokens[1]);
+					if (tracked.size() > 0){
+						pixel_positions[camera_index].push_back(tracked);
+						maxNumOfTrackedObj = maxNumOfTrackedObj < tracked.size() ? tracked.size() : maxNumOfTrackedObj;
+						cout << "Tracked sth" << endl;
+					}
+					else {
+						vector<pair<Point2f,String>> empty;
+						pixel_positions[camera_index].push_back(empty);
+					}
+				} else {
+					vector<pair<Point2f,String>> empty;
+					pixel_positions[camera_index].push_back(empty);
+				}
+			}
+		}
+		last_postion = info_file_str.tellg();
+	}
+	// get real_pos info
+	cout << "Triangulation for real" << endl;
+	vector<std::pair<Point3f,String>> pos;
+	vector<std::pair<Point3f,String>> first_pos;
+	vector<std::pair<Point3f,String>> last_pos;
+	bool first_got = false;
+	for (int j = 0; j < numberOfFrames; j++){
+		if (pixel_positions.at(0).at(j).size() > 0 && pixel_positions.at(1).at(j).size() > 0){
+			vector<pair<Point3f,String>> realPoints(maxNumOfTrackedObj);
+			vector<pair<Point2f,String>> leftPoints = pixel_positions.at(0).at(j);
+			vector<pair<Point2f,String>> rightPoints = pixel_positions.at(1).at(j);
+			vector<Point2f> justPointsLeft;
+			vector<Point2f> justPointsRight;
+			for (int y = 0; y < realPoints.size(); y++){
+				justPointsLeft.push_back(leftPoints.at(y).first);
+				justPointsRight.push_back(rightPoints.at(y).first);
+			}
+			Mat matl = Mat(2,1,CV_32FC1,(float*)justPointsLeft.data());
+			Mat matr = Mat(2,1,CV_32FC1,(float*)justPointsRight.data());
+			Mat matout = Mat(4,1,CV_64FC1);
+			matl.convertTo(matl,CV_64FC1);
+			matr.convertTo(matr,CV_64FC1);
+			cout << "Metoda 1: " << endl;
+			String time;
+			for (int z = 0; z < maxNumOfTrackedObj; z++){
+				time = leftPoints.at(z).second;
+				realPoints[z] = make_pair(triangulatePointsFromMultipleCameras(conf,0,1,justPointsLeft[z],justPointsRight[z]),time);
+				cout<< "X: " << realPoints[z].first.x << "Y: " << realPoints[z].first.y << "Z: " << realPoints[z].first.z<<endl;
+
+			}
+			cout << "Triangulate points: " << endl;
+			triangulatePoints(P1,P2,matl,matr,matout);
+			//double *coord = (double*)(matout.data);
+			double X_W = matout.at<double>(0,0);//coord[0];
+			double Y_W = matout.at<double>(1,0);//coord[1];
+			double Z_W = matout.at<double>(2,0);//coord[2];
+			double W = matout.at<double>(3,0);//coord[3];
+			double X = X_W / W;
+			double Y = Y_W / W;
+			double Z = Z_W / W;
+			cout << "X: " << X <<" Y:  "<< Y <<" Z:  "<< Z << " W: " << W <<  endl;
+			cout << matout << endl;
+			cout << endl;
+			if (realPoints.size() > 0 && !first_got){
+									first_pos = realPoints;
+									first_got = true;
+			}
+			real_positions.push_back(realPoints);
+			realPoints.clear();
+		}
+	}
+	cout << "Triangulation done" << endl;
+	Point3f start_point(first_pos.at(1).first);
+	Point3f current;
+	Point3f last;
+	last = start_point;
+	String last_timestamp = first_pos.at(1).second;
+	cout << "first: " << start_point.x << " " << start_point.y << " " << start_point.z << " " << first_pos.at(1).second <<  endl;
+	for (int i = 0; i < real_positions.size(); i++){
+			if (real_positions.at(i).size() > 0){
+				/*
+				 * predkosc wzgl pierwszego zarejestrowanego
+				 * */
+				current.x = real_positions.at(i).at(1).first.x;
+				current.y = real_positions.at(i).at(1).first.y;
+				current.z = real_positions.at(i).at(1).first.z;
+				cout << "current: " << current.x << " " << current.y << " " << current.z << " " << real_positions.at(i).at(1).second << endl;
+				cout << "Od poczatku: " << tracker->getSpeed(start_point,first_pos.at(1).second,current,real_positions.at(i).at(1).second) << endl;
+				/*
+				 * predkosc wzgledem poprzedniego
+				 * */
+				if (last_timestamp != real_positions.at(i).at(1).second){
+					cout << "Od ostatniego: " <<tracker->getSpeed(last,last_timestamp,current,real_positions.at(i).at(1).second) << endl;
+					last.x = current.x;
+					last.y = current.y;
+					last.z = current.z;
+					last_timestamp = real_positions.at(i).at(1).second;
+				}
+			}
+	}
+};
 
 
 void VideoManager::TrackMultipleFromFiles(Configuration conf){
@@ -371,13 +547,13 @@ void VideoManager::TrackMultipleFromFilesTriangulate(Configuration conf){
 				Mat picture = readImageFromFile(tokens[0]);
 				/*
 				 * remap
-				 **/
+				 *
 				Mat undistorted;
 				if (camera_index == 0){
 					remap(picture,undistorted,mx1,my1,CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
 				} else if (camera_index == 1){
 					remap(picture,undistorted,mx2,my2,CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
-				}
+				}*/
 				if (picture.data){
 					vector<Point2f> tracked = trackers[camera_index]->trackInPicturePixels(picture);
 					if (tracked.size() > 0){
@@ -456,18 +632,16 @@ void VideoManager::TrackMultipleFromFilesTriangulate(Configuration conf){
 			realPoints.clear();
 		}
 	}
-	cout << "P1: " << P1 << endl;
-	cout << "P2: " << P2 << endl;
 };
 
 
 void VideoManager::CaptureAndTrack(Configuration conf){
 	boost::thread_group group;
 	cout << "Start capture!" << endl;
-	capturing_thread = boost::thread(&VideoManager::CaptureToFiles, this, conf);
-	cout << "Start tracking!" << endl;
+	//capturing_thread = boost::thread(&VideoManager::CaptureToFiles, this, conf);
+	//cout << "Start tracking!" << endl;
 	tracking_thread = boost::thread(&VideoManager::TrackFromFiles, this, conf);
-	group.add_thread(&capturing_thread);
+	//group.add_thread(&capturing_thread);
 	group.add_thread(&tracking_thread);
 	group.join_all();
 	cout << "End all!" << endl;
@@ -575,6 +749,11 @@ void VideoManager::test_stereo_tracking(Configuration conf){
 void VideoManager::test_stereo_tracking_no_capture(Configuration conf){
 	initTrackers(conf);
 	TriangulateFromFiles(conf);
+}
+
+void VideoManager::test_stereo_tracking_no_capture_speed(Configuration conf){
+	initTrackers(conf);
+	TriangulateFromFilesSpeed(conf);
 }
 
 /*

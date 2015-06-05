@@ -29,17 +29,23 @@ public:
 	Configuration *config;
 	String calibrationFile;
 	double marker_size;
-	Mat cameraMatrix, distCoeffs;
+	int maxRadius, minRadius, CannyParam1, CannyParam2;
+	bool homographyFound;
+	Mat cameraMatrix, distCoeffs, homographyInternal;
 	BallObjectTracker(Configuration conf, String calibfn);
 	virtual ~BallObjectTracker();
 	String trackInPicture(Mat picture, String time);
 	vector<std::pair<Point2f,String>> trackInPictureV(Mat picture, String time);
 	vector<Point2f> trackInPicturePixels(Mat picture);
+	vector<pair<Point2f,String>> trackInPicturePixelsV(Mat picture, String time);
 	vector<vector<std::pair<Point2f,String>>> trackInPicturesV(vector<std::pair<Mat,String>> pictures);
 	vector<String> trackInPictures(vector<std::pair<Mat,String>> pictures);
 	vector<String> trackInVideo(String filename);
 	void saveTrackToFile(vector<String> pos, String filename);
 	bool readCameraParams( String calib_file, Mat& cameraMatrix, Mat& distCoeffs );
+	Mat findHomography(Mat img, Size pattern_size, float squareSize,
+            Mat intrinsic_matrix, Mat distortion_coeffs, vector<Point2f> &pointBuf);
+	void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point2f>& corners);
 };
 
 } /* namespace TracingFramework */
